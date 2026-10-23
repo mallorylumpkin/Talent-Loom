@@ -89,16 +89,15 @@ In Supabase, go to **Authentication**:
    - **Site URL:** `http://localhost:3000` (you'll change this to your real domain in Part 6)
    - **Redirect URLs** → **Add URL**: `http://localhost:3000/**`
 2. **Sign In / Providers** → **Email**: make sure **Confirm email** is **ON**. Click **Save**.
-3. **Emails** (Email Templates) — replace two templates so links work on any device:
-   - **Confirm signup** → replace the link in the message body with:
+3. **Emails** (Email Templates) — **skip this for now.** On the free plan Supabase only lets you edit templates after you connect your own email sender (Part 6.4). The default templates already work: just open confirmation and reset links **in the same browser** you used to sign up. Once custom SMTP is connected, set these templates so links work on any device:
+   - **Confirm signup** link:
      ```
      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/creator">Confirm your email</a>
      ```
-   - **Reset password** → replace the link with:
+   - **Reset password** link:
      ```
      <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery">Reset your password</a>
      ```
-   - Click **Save** on each.
 4. **Multi-Factor** (under Authentication → **Sign In / Providers** or **MFA**): make sure **TOTP (Authenticator app)** is **enabled**. Admins need it.
 5. **Attack Protection / Passwords:** turn on **Leaked password protection** if available on your plan, and set **Minimum password length** to **10**.
 
@@ -177,7 +176,7 @@ In Supabase → **Authentication** → **URL Configuration**:
 
 ### 6.4 Before real users (launch checklist)
 - **Custom domain:** Vercel → Project → **Settings → Domains** → add your domain and follow the DNS instructions. Then update `NEXT_PUBLIC_SITE_URL` in Vercel and the Site URL in Supabase.
-- **Email provider:** create an account with an email service such as **Resend** or **Postmark**, verify your domain, then in Supabase → **Project Settings → Authentication → SMTP Settings**, turn on **Custom SMTP** and paste their SMTP details.
+- **Email provider (also unlocks custom email templates — see Part 3.4 step 3):** create an account with an email service such as **Resend** or **Postmark**, verify your domain, then in Supabase → **Project Settings → Authentication → SMTP Settings**, turn on **Custom SMTP** and paste their SMTP details.
 - **Supabase plan:** upgrade to **Pro** for daily backups and so the project never pauses.
 - **Legal pages:** have an attorney review the templates (they're editable in the admin console in Phase 5).
 
@@ -198,7 +197,7 @@ $ npx supabase db push
 | Symptom | Fix |
 |---|---|
 | "TalentLoom isn't configured yet" | `.env.local` is missing or has a typo. Restart `npm run dev` after editing it. |
-| Confirmation link says "That link didn't work" | Check Part 3.4 step 3 (email templates) and that the Site URL matches the address you're using. |
+| Confirmation link says "That link didn't work" | Open the link in the same browser you signed up in (until custom templates are set up), and check the Site URL matches the address you're using. |
 | "You must confirm you are 18 or older" | The sign-up form requires the 18+ checkbox; accounts can't be created without it. |
 | Admin keeps asking for a code | Make sure your phone's clock is set automatically; codes depend on accurate time. |
 | `supabase db push` asks for a password | Use the database password from step 3.1 (reset it in Project Settings → Database if lost). |
