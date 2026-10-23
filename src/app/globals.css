@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   TalentLoom design tokens (see plan doc §17)
+   Tailwind v4: every --color-* below becomes a utility, e.g.
+   bg-canvas, text-ink, border-line, bg-primary, text-accent-strong.
+   ------------------------------------------------------------------ */
+@theme {
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
+
+  --color-ink: #16131f;
+  --color-ink-soft: #2a2535;
+  --color-canvas: #faf7f2;
+  --color-surface: #ffffff;
+  --color-line: #e9e4dc;
+  --color-line-strong: #d8d1c5;
+  --color-muted: #6b6577;
+
+  --color-primary: #5b3df5;
+  --color-primary-hover: #4a2fe0;
+  --color-primary-soft: #eeeafe;
+  --color-primary-strong: #3d24b8;
+
+  --color-accent: #ff6b57;
+  --color-accent-soft: #ffe9e5;
+  --color-accent-strong: #b23a2b;
+
+  --color-success: #0f9d7a;
+  --color-success-soft: #e3f5ef;
+  --color-success-strong: #0b6e55;
+
+  --color-warning: #d98a00;
+  --color-warning-soft: #fdf1dc;
+  --color-warning-strong: #8a5800;
+
+  --color-danger: #d93b4a;
+  --color-danger-soft: #fce8ea;
+  --color-danger-strong: #9e2531;
+
+  --color-sponsored: #8a6a00;
+  --color-sponsored-soft: #fff6d6;
+
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px rgb(22 19 31 / 0.04), 0 4px 16px rgb(22 19 31 / 0.05);
+  --shadow-pop: 0 8px 28px rgb(22 19 31 / 0.12), 0 2px 6px rgb(22 19 31 / 0.06);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
