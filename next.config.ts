@@ -18,6 +18,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Pin the project root so stray lockfiles in parent folders are ignored.
+  turbopack: { root: process.cwd() },
   images: {
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/**" }]
