@@ -86,8 +86,8 @@ Type **Y** to confirm. You should see 8 migrations applied.
 In Supabase, go to **Authentication**:
 
 1. **URL Configuration**
-   - **Site URL:** `http://localhost:3000` (you'll change this to your real domain in Part 6)
-   - **Redirect URLs** → **Add URL**: `http://localhost:3000/**`
+   - **Site URL:** `http://localhost:3001` (you'll change this to your real domain in Part 6)
+   - **Redirect URLs** → **Add URL**: `http://localhost:3001/**`
 2. **Sign In / Providers** → **Email**: make sure **Confirm email** is **ON**. Click **Save**.
 3. **Emails** (Email Templates) — **skip this for now.** On the free plan Supabase only lets you edit templates after you connect your own email sender (Part 6.4). The default templates already work: just open confirmation and reset links **in the same browser** you used to sign up. Once custom SMTP is connected, set these templates so links work on any device:
    - **Confirm signup** link:
@@ -114,7 +114,7 @@ In Supabase, go to **Authentication**:
    *(Windows PowerShell: `Copy-Item .env.example .env.local`)*
 2. Open `.env.local` in a text editor (VS Code, TextEdit in plain-text mode, or Notepad) and fill in:
    ```
-   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   NEXT_PUBLIC_SITE_URL=http://localhost:3001
    NEXT_PUBLIC_SUPABASE_URL=   ← Project URL from 3.2
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=   ← Publishable key from 3.2
    SUPABASE_SECRET_KEY=   ← Secret key from 3.2
@@ -124,7 +124,7 @@ In Supabase, go to **Authentication**:
    ```
    $ npm run dev
    ```
-4. Open **http://localhost:3000** in your browser. You should see the TalentLoom homepage.
+4. Open **http://localhost:3001** in your browser. You should see the TalentLoom homepage.
 
 **Quick test:** click **Join free**, sign up with a real email address you can check, open the confirmation email, click the link. You should land on your creator dashboard.
 
