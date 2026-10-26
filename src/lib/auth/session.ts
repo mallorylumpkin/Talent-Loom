@@ -73,8 +73,20 @@ export async function requireAdmin(options: { allowWithoutMfa?: boolean } = {}):
   const viewer = await requireRole("super_admin", "/admin");
   if (!options.allowWithoutMfa) {
     const supabase = await createClient();
-    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (data?.currentLevel !== "aal2") redirect("/admin/mfa");
+    // getClaims() verifies the session token before reading the MFA level (and avoids
+    // Supabase's "getSession() could be insecure" warning). Older SDKs fall back.
+    const auth = supabase.auth as typeof supabase.auth & {
+      getClaims?: () => Promise<{ data: { claims?: { aal?: string } } | null; error: unknown }>;
+    };
+    let level: string | undefined;
+    if (typeof auth.getClaims === "function") {
+      const { data, error } = await auth.getClaims();
+      level = error ? undefined : data?.claims?.aal;
+    } else {
+      const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      level = data?.currentLevel ?? undefined;
+    }
+    if (level !== "aal2") redirect("/admin/mfa");
   }
   return viewer;
 }
