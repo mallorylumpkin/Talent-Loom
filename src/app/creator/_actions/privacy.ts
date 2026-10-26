@@ -6,6 +6,7 @@ import { getCreatorContext, grantConsent, hasConsent } from "@/lib/creator/conte
 import { dbErrorMessage, finish } from "@/lib/actions/helpers";
 import type { FormState } from "@/lib/actions/types";
 import { VISIBILITY_GROUPS } from "@/lib/creator/privacy";
+import { disconnectAccount } from "@/lib/social/sync";
 
 const PATHS = ["/creator", "/creator/privacy", "/creator/profile"];
 const level = z.enum(["public", "approved_companies", "private"]);
@@ -72,7 +73,26 @@ export async function skipOnboardingAction(): Promise<void> {
 }
 
 export async function revokeConsentAction(consentId: string): Promise<FormState> {
-  const { viewer, supabase } = await getCreatorContext();
+  const { viewer, supabase, creator } = await getCreatorContext();
+  const { data: consent } = await supabase
+    .from("consents")
+    .select("consent_type")
+    .eq("id", consentId)
+    .eq("user_id", viewer.id)
+    .is("revoked_at", null)
+    .maybeSingle();
+  // Withdrawing data or connection consent disconnects platform accounts (revoked at the platform where possible).
+  // The database also wipes the tokens itself when the consent is withdrawn.
+  if (consent && ["platform_connection", "creator_data_consent"].includes(consent.consent_type)) {
+    const { data: connected } = await supabase
+      .from("social_accounts")
+      .select("id")
+      .eq("creator_id", creator.id)
+      .eq("connection_type", "oauth");
+    for (const a of connected ?? []) {
+      await disconnectAccount(a.id).catch((e) => console.error("[privacy:disconnect]", e));
+    }
+  }
   const { error } = await supabase
     .from("consents")
     .update({ revoked_at: new Date().toISOString() })
@@ -80,5 +100,5 @@ export async function revokeConsentAction(consentId: string): Promise<FormState>
     .eq("user_id", viewer.id)
     .is("revoked_at", null);
   if (error) return { message: dbErrorMessage(error) };
-  return finish(null, [...PATHS, "/creators"], "Consent withdrawn");
+  return finish(null, [...PATHS, "/creators", "/creator/social-accounts", "/creator/analytics"], "Consent withdrawn");
 }

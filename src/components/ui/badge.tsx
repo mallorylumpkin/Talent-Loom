@@ -29,16 +29,20 @@ export function Badge({ tone = "neutral", children, className }: { tone?: Tone; 
 export function ProvenanceBadge({ source }: { source: "self_reported" | "admin_verified" | "api_verified" }) {
   if (source === "admin_verified") {
     return (
-      <Badge tone="success">
-        <BadgeCheck className="size-3.5" aria-hidden /> Admin-verified
-      </Badge>
+      <span title="Checked by TalentLoom staff against the creator's platform analytics">
+        <Badge tone="success">
+          <BadgeCheck className="size-3.5" aria-hidden /> Verified · reviewed
+        </Badge>
+      </span>
     );
   }
   if (source === "api_verified") {
     return (
-      <Badge tone="primary">
-        <Link2 className="size-3.5" aria-hidden /> API-verified
-      </Badge>
+      <span title="Read directly from the platform through the creator's connected account">
+        <Badge tone="primary">
+          <Link2 className="size-3.5" aria-hidden /> Verified · connected
+        </Badge>
+      </span>
     );
   }
   return (

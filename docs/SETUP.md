@@ -169,6 +169,7 @@ Before clicking Deploy, open **Environment Variables** and add each of these (sa
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key |
 | `SUPABASE_SECRET_KEY` | Secret key |
+| `TOKEN_ENCRYPTION_KEY`, `CRON_SECRET` and platform keys | Only once you set up connected social accounts — see [SOCIAL-CONNECTIONS.md](SOCIAL-CONNECTIONS.md) |
 
 Click **Deploy**. When it finishes, click **Visit**.
 
@@ -181,6 +182,7 @@ In Supabase → **Authentication** → **URL Configuration**:
 - **Custom domain:** Vercel → Project → **Settings → Domains** → add your domain and follow the DNS instructions. Then update `NEXT_PUBLIC_SITE_URL` in Vercel and the Site URL in Supabase.
 - **Email provider (also unlocks custom email templates — see Part 3.4 step 3):** create an account with an email service such as **Resend** or **Postmark**, verify your domain, then in Supabase → **Project Settings → Authentication → SMTP Settings**, turn on **Custom SMTP** and paste their SMTP details.
 - **Supabase plan:** upgrade to **Pro** for daily backups and so the project never pauses.
+- **Connected social accounts:** finish each platform's review so any creator can connect — see [SOCIAL-CONNECTIONS.md](SOCIAL-CONNECTIONS.md).
 - **Legal pages:** have an attorney review the templates (they're editable in the admin console in Phase 5).
 
 From now on, every time code is pushed to GitHub, Vercel redeploys automatically.

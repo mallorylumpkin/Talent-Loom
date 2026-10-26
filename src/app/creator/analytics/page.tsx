@@ -23,7 +23,7 @@ interface SnapshotRow {
   analytics_evidence: { id: string; file_name: string; size_bytes: number; storage_path: string; deleted_at: string | null }[];
 }
 interface AccountRow {
-  id: string; handle: string; platforms: { label: string };
+  id: string; handle: string; connection_type: "manual" | "oauth"; platforms: { label: string };
   analytics_snapshots: SnapshotRow[];
 }
 
@@ -42,7 +42,7 @@ export default async function AnalyticsPage() {
 
   const { data } = await supabase
     .from("social_accounts")
-    .select(`id, handle, platforms(label),
+    .select(`id, handle, connection_type, platforms(label),
       analytics_snapshots(id, followers, avg_views, avg_likes, avg_comments, engagement_rate, growth_30d_pct, captured_at,
         source, verification_status, audience_demographics(dimension, bucket, pct),
         analytics_evidence(id, file_name, size_bytes, storage_path, deleted_at))`)
@@ -79,9 +79,10 @@ export default async function AnalyticsPage() {
       ) : (
         <div className="space-y-6">
           <Alert tone="info" title="How verification works">
-            Numbers you type are always shown as <strong>Self-reported</strong>. Upload a screenshot of your platform analytics
-            (showing your handle and the numbers) and request verification. When TalentLoom confirms them, they're labelled{" "}
-            <strong>Admin-verified</strong>.
+            <Link href="/creator/social-accounts" className="font-medium underline">Connected accounts</Link> update daily and are
+            labelled <strong>Verified · connected</strong>. Numbers you type are always shown as <strong>Self-reported</strong> — upload
+            a screenshot of your platform analytics (showing your handle and the numbers) and request verification; when TalentLoom
+            confirms them, they&apos;re labelled <strong>Verified · reviewed</strong>.
           </Alert>
 
           {accounts.map((a) => {
@@ -110,12 +111,24 @@ export default async function AnalyticsPage() {
                     </dl>
                   )}
 
+                  {a.connection_type === "oauth" ? (
+                    <p className="rounded-xl bg-canvas px-4 py-3 text-sm text-muted">
+                      This account is connected, so its numbers are read from {a.platforms.label} each day and can&apos;t be edited
+                      here. Audience demographics from connected accounts aren&apos;t available yet.
+                    </p>
+                  ) : latest?.source === "api_verified" ? (
+                    <p className="rounded-xl bg-canvas px-4 py-3 text-sm text-muted">
+                      These numbers were read from {a.platforms.label} while the account was connected. Reconnect it on{" "}
+                      <Link href="/creator/social-accounts" className="font-medium text-primary hover:underline">Social accounts</Link> to keep them current.
+                    </p>
+                  ) : (
                   <div>
                     <h3 className="mb-3 text-base font-semibold text-ink">{latest ? "Update numbers" : "Add numbers"}</h3>
                     <SnapshotForm accountId={a.id} latest={latest} />
                   </div>
+                  )}
 
-                  {latest && (
+                  {latest && latest.source !== "api_verified" && a.connection_type !== "oauth" && (
                     <>
                       <div>
                         <h3 className="text-base font-semibold text-ink">Audience demographics</h3>

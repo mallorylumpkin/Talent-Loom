@@ -26,6 +26,7 @@ src/
     creator/         Creator dashboard, onboarding, profile, accounts, analytics, portfolio, media kit, privacy, settings
     company/         Company workspace: dashboard, search, creator details, lists, compare, profile, team, settings
     admin/           Super-admin console (role + MFA protected): leads, companies, review; MFA setup
+    api/             OAuth callbacks for connected social accounts; daily sync job
   components/
     ui/              Buttons, fields, cards, badges, alerts, empty states
     layout/          Public header/footer, dashboard shell, navigation
@@ -34,12 +35,13 @@ src/
     supabase/        Browser, server and server-only admin clients; session proxy
     auth/            Session helpers and role guards
     validation/      Zod schemas
+    social/          Platform connections: providers, token encryption, sync
   proxy.ts           Refreshes the auth session on every request
 supabase/
   migrations/        Database schema, security policies, storage, reference data
-  tests/             Security test suite (95 checks)
+  tests/             Security test suite (115 checks)
 scripts/             create-admin and fictional sample-data scripts
-docs/                Setup, security model, build checklist
+docs/                Setup, social connections, security model, build checklist
 ```
 
 ## Security model (summary)
@@ -48,7 +50,7 @@ docs/                Setup, security model, build checklist
 - **Roles live in the database**, never in user-editable metadata. Public sign-up can only create creator accounts; company accounts are created by TalentLoom staff.
 - **Super admin** is created once with `bootstrap_super_admin()` from the Supabase SQL editor and requires **two-factor authentication** — enforced in the database, not just the UI.
 - **Plan limits** (social accounts, seats, saved creators, pipelines) are enforced by database triggers.
-- **Analytics provenance:** anything a creator types is stored as *self-reported*; only staff or future API syncs can mark numbers verified.
+- **Analytics provenance:** anything a creator types is stored as *self-reported*; only staff review or a creator's connected platform account (official APIs, see [docs/SOCIAL-CONNECTIONS.md](docs/SOCIAL-CONNECTIONS.md)) can produce verified numbers.
 - **Append-only audit log** that even the database owner cannot edit or delete.
 
 Details: [docs/SECURITY.md](docs/SECURITY.md). Build progress: [docs/CHECKLIST.md](docs/CHECKLIST.md).

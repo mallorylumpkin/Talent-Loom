@@ -447,6 +447,103 @@ select pg_temp.fails($$select public.submit_company_lead('Fictional Agency', 'Pa
 select pg_temp.fails($$select private.check_rate_limit('x', interval '1 hour', 1)$$,
   '69. internal helpers are not callable by visitors');
 
+-- ---------------------------------------------------------------------
+-- Connected social accounts (official platform APIs)
+--  G, H = creators (fictional)
+-- ---------------------------------------------------------------------
+select pg_temp.as_postgres();
+insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data) values
+  ('00000000-0000-0000-0000-000000000021', 'gia@example.com', '{"age_18_plus":"true","terms_version":"t1"}', '{}'),
+  ('00000000-0000-0000-0000-000000000022', 'hal@example.com', '{"age_18_plus":"true","terms_version":"t1"}', '{}');
+insert into consents (user_id, consent_type, document_version) values
+  ('00000000-0000-0000-0000-000000000021', 'creator_data_consent', 't1'),
+  ('00000000-0000-0000-0000-000000000022', 'creator_data_consent', 't1'),
+  ('00000000-0000-0000-0000-000000000022', 'platform_connection', 't1');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000021');
+insert into social_accounts (creator_id, platform_id, handle, connection_type, external_account_id)
+values (private.my_creator_id(), (select id from platforms where key = 'instagram'), 'gia.fictional', 'oauth', 'ig-fake-1');
+select pg_temp.ok((select connection_type = 'manual' and external_account_id is null from social_accounts),
+  'SC-1. a creator cannot create an account that claims to be connected');
+select pg_temp.fails($$update social_accounts set connection_type = 'oauth', external_account_id = 'ig-1'$$,
+  'SC-2. a creator cannot mark an account as connected');
+select pg_temp.fails($$insert into social_connections (social_account_id, provider)
+  select id, 'instagram' from social_accounts$$, 'SC-3. a creator cannot write connection records');
+insert into analytics_snapshots (social_account_id, followers, captured_at)
+  select id, 999999, current_date from social_accounts;
+insert into audience_demographics (snapshot_id, dimension, bucket, pct)
+  select id, 'age', '18-24', 90 from analytics_snapshots;
+select pg_temp.fails($$select public.attach_oauth_account(auth.uid(), 'instagram', 'ig-1', 'gia.fictional', null, '{}', 'x', null)$$,
+  'SC-4. creators cannot call the server-only connect function');
+select pg_temp.fails($$select public.record_api_snapshot((select id from social_accounts), 5, null, null, null, null, '{}')$$,
+  'SC-5. creators cannot write API-verified numbers');
+
+-- Server (service role) connects the account after the platform confirms it.
+select pg_temp.as_postgres();
+set role service_role;
+select pg_temp.fails($$select public.attach_oauth_account('00000000-0000-0000-0000-000000000021', 'instagram', 'ig-1',
+  'gia.fictional', null, '{}', 'enc', null)$$, 'SC-6. connecting requires the creator''s connection consent');
+reset role;
+insert into consents (user_id, consent_type, document_version)
+  values ('00000000-0000-0000-0000-000000000021', 'platform_connection', 't1');
+set role service_role;
+select public.attach_oauth_account('00000000-0000-0000-0000-000000000021', 'instagram', 'ig-1',
+  'Gia.Fictional', 'https://www.instagram.com/gia.fictional', '{instagram_business_basic}', 'enc-secret', now() + interval '60 days');
+select pg_temp.ok((select count(*) = 1 and bool_and(connection_type = 'oauth' and external_account_id = 'ig-1')
+                   from social_accounts sa join creator_profiles cp on cp.id = sa.creator_id
+                   where cp.user_id = '00000000-0000-0000-0000-000000000021' and sa.deleted_at is null),
+  'SC-7. connecting reuses the creator''s existing account with the same handle');
+select public.record_api_snapshot((select sa.id from social_accounts sa where sa.external_account_id = 'ig-1'),
+  12000, null, 400, 20, 3.5, '{"source":"test"}');
+select pg_temp.ok((select source = 'api_verified' and verification_status = 'verified' and followers = 12000
+                   from analytics_snapshots s join social_accounts sa on sa.id = s.social_account_id
+                   where sa.external_account_id = 'ig-1' and s.captured_at = current_date),
+  'SC-8. synced numbers are stored as API-verified (replacing same-day typed numbers)');
+select pg_temp.ok((select count(*) = 0 from audience_demographics d join analytics_snapshots s on s.id = d.snapshot_id
+                   join social_accounts sa on sa.id = s.social_account_id where sa.external_account_id = 'ig-1'),
+  'SC-9. typed demographics are removed from numbers that become verified');
+select pg_temp.fails($$select public.attach_oauth_account('00000000-0000-0000-0000-000000000022', 'instagram', 'ig-1',
+  'gia.fictional', null, '{}', 'enc', null)$$, 'SC-10. one platform account cannot be connected to two creators');
+reset role;
+
+select pg_temp.login('00000000-0000-0000-0000-000000000021');
+select pg_temp.fails($$select encrypted_tokens from social_connections$$, 'SC-11. creators cannot read tokens, even their own');
+select pg_temp.ok((select status = 'active' and provider = 'instagram' from social_connections),
+  'SC-12. creators can see their own connection status');
+select pg_temp.fails($$update analytics_snapshots set followers = 50000000$$, 'SC-13. creators cannot edit API-verified numbers');
+select pg_temp.fails($$insert into analytics_snapshots (social_account_id, followers, captured_at)
+  select id, 50000000, current_date - 1 from social_accounts$$, 'SC-14. creators cannot type numbers for a connected account');
+select pg_temp.fails($$insert into audience_demographics (snapshot_id, dimension, bucket, pct)
+  select id, 'age', '25-34', 80 from analytics_snapshots$$, 'SC-15. creators cannot add demographics to verified numbers');
+select pg_temp.fails($$update social_accounts set handle = 'someone.famous'$$,
+  'SC-16. a connected account''s handle cannot be changed');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000022');
+select pg_temp.ok((select count(*) = 0 from social_connections), 'SC-17. creators cannot see other creators'' connections');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000021');
+update social_accounts set deleted_at = now(), is_primary = false;
+select pg_temp.as_postgres();
+select pg_temp.ok((select status = 'revoked' and encrypted_tokens is null from social_connections c
+                   join social_accounts sa on sa.id = c.social_account_id where sa.external_account_id = 'ig-1'),
+  'SC-18. removing a connected account wipes its tokens');
+
+-- Withdrawing connection consent disconnects every account.
+set role service_role;
+select public.attach_oauth_account('00000000-0000-0000-0000-000000000022', 'youtube', 'yt-1',
+  'hal.fictional', null, '{}', 'enc', null);
+reset role;
+select pg_temp.login('00000000-0000-0000-0000-000000000022');
+update consents set revoked_at = now() where consent_type = 'platform_connection' and user_id = auth.uid();
+select pg_temp.as_postgres();
+select pg_temp.ok((select c.status = 'revoked' and c.encrypted_tokens is null and sa.connection_type = 'manual'
+                   from social_connections c join social_accounts sa on sa.id = c.social_account_id
+                   where c.external_username = 'hal.fictional'),
+  'SC-19. withdrawing connection consent disconnects accounts and wipes tokens');
+select pg_temp.ok((select count(*) > 0 from audit_logs where target_type = 'social_connections'
+                   and not (after ? 'encrypted_tokens')),
+  'SC-20. connections are audit-logged without tokens');
+
 select pg_temp.as_postgres();
 \echo
 \echo ===== ALL SECURITY TESTS PASSED =====

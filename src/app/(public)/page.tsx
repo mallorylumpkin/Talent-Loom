@@ -98,7 +98,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <h2 className="mt-2 text-3xl font-bold text-ink">Scout talent with real signal</h2>
             <ul className="mt-6 space-y-4 text-[15px] text-ink/85">
               <li className="flex gap-3"><Search className="size-5 shrink-0 text-primary" aria-hidden />Search creators who are actively looking for representation, filtered by niche, platform and growth.</li>
-              <li className="flex gap-3"><BadgeCheck className="size-5 shrink-0 text-primary" aria-hidden />Every number is labelled self-reported, admin-verified or API-verified.</li>
+              <li className="flex gap-3"><BadgeCheck className="size-5 shrink-0 text-primary" aria-hidden />Every number is labelled: verified from a connected account, verified by our team, or self-reported.</li>
               <li className="flex gap-3"><Users className="size-5 shrink-0 text-primary" aria-hidden />Lists, notes, a recruiting pipeline and your signed roster in one place.</li>
             </ul>
             <ButtonLink href="/for-companies#contact" className="mt-8" variant="secondary">Talk to our team</ButtonLink>

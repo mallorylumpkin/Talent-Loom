@@ -16,7 +16,8 @@
 - User-supplied metadata can never set a role. Company accounts are created server-side; the super admin is created with `bootstrap_super_admin()`.
 - Creators see and edit only their own data. Companies see only their own workspace. No company can read creator tables directly.
 - Protected fields (role, status, featured flags, company approval, verification fields) can only be changed by privileged server code or an MFA-verified super admin.
-- Creator-entered analytics are always stored as **self-reported**; editing verified numbers resets them.
+- Creator-entered analytics are always stored as **self-reported**; editing staff-verified numbers resets them.
+- **Connected accounts:** only server code can mark an account as connected or write API-verified numbers. Platform tokens are encrypted (AES-256-GCM, `TOKEN_ENCRYPTION_KEY`) before storage, are not readable by any signed-in user (column-level grants), never enter the audit log, and are wiped when the account is removed, disconnected, or consent is withdrawn. The OAuth callback requires a signed, 15-minute, user-bound state cookie. Creators can't edit synced numbers, type numbers for a connected account, or change a connected account's handle; one platform account can be connected to only one creator. The daily sync endpoint requires `CRON_SECRET`.
 - Messages require an open (accepted) conversation, an approved company, no block, and a matching sender; they can't be edited.
 - Super-admin powers require an **MFA (aal2) session**, checked inside the database.
 - `audit_logs` rejects UPDATE, DELETE and TRUNCATE for every role.

@@ -7,6 +7,7 @@ import { dbErrorMessage, finish, formValues, optionalInt, uuid } from "@/lib/act
 import type { FormState } from "@/lib/actions/types";
 import { fieldErrors } from "@/lib/validation/auth";
 import { todayIso } from "@/lib/format";
+import { disconnectAccount } from "@/lib/social/sync";
 
 const PATHS = ["/creator", "/creator/social-accounts", "/creator/analytics", "/creator/onboarding"];
 
@@ -83,6 +84,19 @@ export async function addAccountAction(_prev: FormState, fd: FormData): Promise<
 export async function removeAccountAction(accountId: string): Promise<FormState> {
   const { supabase, creator } = await getCreatorContext();
   if (!uuid.safeParse(accountId).success) return { message: "Account not found" };
+
+  // Connected accounts: revoke access at the platform and wipe tokens first.
+  const { data: owned } = await supabase
+    .from("social_accounts")
+    .select("id, connection_type")
+    .eq("id", accountId)
+    .eq("creator_id", creator.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!owned) return { message: "Account not found" };
+  if (owned.connection_type === "oauth") {
+    await disconnectAccount(owned.id).catch((e) => console.error("[accounts:disconnect]", e));
+  }
 
   const { data: removed, error } = await supabase
     .from("social_accounts")

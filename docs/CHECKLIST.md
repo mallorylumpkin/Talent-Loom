@@ -57,6 +57,20 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Company settings: plan features and password change
 - ✅ Security suite extended — 93 checks passing
 
+## Connected social accounts ✅ (built; each platform needs its developer app — see docs/SOCIAL-CONNECTIONS.md)
+- ✅ Connect YouTube (Google OAuth), Instagram (Instagram Login, Business/Creator accounts) and TikTok (Login Kit v2)
+- ✅ Consent screen before connecting; read-only scopes; "Connect" only shown for platforms whose keys are configured
+- ✅ Signed state cookie on the callback; tokens encrypted with AES-256-GCM; tokens never readable by users
+- ✅ Numbers stored as API-verified ("Verified · connected"); followers, avg views/likes/comments, engagement, 30-day growth
+- ✅ Daily refresh (Vercel Cron, `CRON_SECRET`) with token refresh; "Sync now"; "Reconnect needed" when access is revoked
+- ✅ Disconnect / remove account / withdraw consent revokes at the platform (where supported) and wipes tokens
+- ✅ Database rules: no faked connections, no editing synced numbers, no typed numbers on connected accounts,
+  one platform account per creator, no typed demographics on verified numbers, tokens kept out of the audit log
+- ✅ Security suite extended — 115 checks passing
+- ⬜ Live test with real developer apps (needs your Google / Meta / TikTok apps)
+- ⬜ Platform reviews for public use: Google verification, Meta Advanced Access + Business Verification, TikTok app review
+- ⬜ Later: audience demographics from platform insights; Instagram views (extra Instagram permission)
+
 ## Phase 4 — Relationships 🔜
 - ⬜ Representation inquiries (atomic, plan-limited, rate-limited)
 - ⬜ Messaging with realtime, unread counts, archive, block, report
@@ -79,4 +93,4 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ⬜ Affiliate Code Vault, Brand-Deal Tracker, creator insights
 - ⬜ Remaining public pages (How it works, For creators, About, Contact, FAQ, Report a user)
 - ⬜ Custom media-kit page and advanced insights (Creator Pro)
-- ⬜ Accessibility pass, full seed data, testing and social-API integration guide
+- ⬜ Accessibility pass, full seed data, testing (social-API setup guide ✅ in docs/SOCIAL-CONNECTIONS.md)

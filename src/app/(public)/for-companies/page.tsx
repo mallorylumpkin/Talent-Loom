@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const benefits = [
   { icon: Filter, title: "Search with real signal", body: "Filter by niche, platform, location, follower range, engagement, growth and whether creators are actively seeking management." },
-  { icon: BadgeCheck, title: "Know where numbers come from", body: "Every metric is clearly labelled self-reported, admin-verified or API-verified." },
+  { icon: BadgeCheck, title: "Know where numbers come from", body: "Every metric is labelled: verified from the creator’s connected account, verified by our team, or self-reported." },
   { icon: Columns3, title: "A recruiting pipeline", body: "Move prospects from Discovered to Signed, with shared notes and team assignments." },
   { icon: MessageCircle, title: "Respectful outreach", body: "Send representation inquiries and message creators who accept — no cold-DM chaos." },
   { icon: Users, title: "Built for teams", body: "Seats, roles and permissions so the right people see the right things." },

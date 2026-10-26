@@ -17,8 +17,9 @@ const consentLabels: Record<string, string> = {
   privacy_policy: "Privacy Policy",
   creator_data_consent: "Storing and sharing my analytics",
   discoverability: "Being discoverable by approved companies",
+  platform_connection: "Reading my numbers from connected platforms",
 };
-const revocable = new Set(["creator_data_consent", "discoverability"]);
+const revocable = new Set(["creator_data_consent", "discoverability", "platform_connection"]);
 
 export default async function PrivacyPage() {
   const { viewer, supabase, creator } = await getCreatorContext();
