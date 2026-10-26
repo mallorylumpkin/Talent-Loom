@@ -12,7 +12,7 @@ TalentLoom connects growing social media creators with vetted management compani
 npm install
 cp .env.example .env.local   # then fill in your Supabase keys
 npx supabase db push         # after linking your project (see SETUP.md)
-npm run dev                  # http://localhost:3001
+npm run dev                  # http://localhost:3002
 ```
 
 ## Project layout

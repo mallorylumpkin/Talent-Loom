@@ -13,7 +13,7 @@ function required(name: string, value: string | undefined): string {
 }
 
 export const publicEnv = {
-  siteUrl: () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001").replace(/\/$/, ""),
+  siteUrl: () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3002").replace(/\/$/, ""),
   supabaseUrl: () => required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL),
   supabaseKey: () =>
     required(
