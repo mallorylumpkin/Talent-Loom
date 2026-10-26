@@ -58,7 +58,7 @@ async function handleInvoice(inv: Obj, failed: boolean) {
 
 /** Stripe → TalentLoom. Every event is stored once (idempotent) and processed. */
 export async function POST(request: NextRequest) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secret = (process.env.STRIPE_WEBHOOK_SECRET ?? "").trim();
   const payload = await request.text();
   if (!secret || !verifyWebhook(payload, request.headers.get("stripe-signature"), secret)) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });

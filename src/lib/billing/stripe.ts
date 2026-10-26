@@ -9,11 +9,15 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 const API = "https://api.stripe.com/v1";
 export const STRIPE_API_VERSION = "2025-03-31.basil";
 
+// Trimmed, so a stray space or line break pasted into Vercel doesn't break it.
+function secretKey(): string {
+  return (process.env.STRIPE_SECRET_KEY ?? "").trim().replace(/^["']|["']$/g, "");
+}
 export function stripeConfigured(): boolean {
-  return /^sk_(test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "") || /^rk_(test|live)_/.test(process.env.STRIPE_SECRET_KEY ?? "");
+  return /^(sk|rk)_(test|live)_/.test(secretKey());
 }
 export function stripeTestMode(): boolean {
-  return (process.env.STRIPE_SECRET_KEY ?? "").includes("_test_");
+  return secretKey().includes("_test_");
 }
 
 type Params = Record<string, unknown>;
@@ -45,7 +49,7 @@ export class StripeError extends Error {
 
 export async function stripe<T = Record<string, unknown>>(method: "GET" | "POST" | "DELETE", path: string, params: Params = {},
   idempotencyKey?: string): Promise<T> {
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = secretKey();
   if (!key) throw new StripeError("Stripe isn't set up yet (STRIPE_SECRET_KEY is missing).");
   const body = encode(params).join("&");
   const url = method === "GET" && body ? `${API}${path}?${body}` : `${API}${path}`;
