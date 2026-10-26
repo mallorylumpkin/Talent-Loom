@@ -12,7 +12,7 @@ import { disconnectAction, syncNowAction } from "@/app/creator/_actions/connecti
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
 import { tokenEncryptionConfigured } from "@/lib/social/crypto";
-import { configuredProviders, getProvider } from "@/lib/social/providers";
+import { configuredProviders, getProvider, PROVIDER_KEYS } from "@/lib/social/providers";
 import { getCreatorContext, getLookups, hasConsent } from "@/lib/creator/context";
 import { compactNumber, shortDate } from "@/lib/format";
 import { cn } from "@/lib/cn";
@@ -46,6 +46,7 @@ const CONNECT_ERRORS: Record<string, string> = {
   taken: "That account is already connected to another TalentLoom creator. If it's yours, contact support.",
   limit: "You've reached the number of social accounts on your plan. Remove one or upgrade to Creator Pro, then try again.",
   no_channel: "That Google account doesn't have a YouTube channel. Try again and choose the account that owns your channel.",
+  no_pages: "No Facebook Pages were shared. Try again and tick the Page(s) you want to connect. Personal profiles can't be connected.",
   sync: "Your account is connected, but we couldn't read its numbers yet. Use “Sync now” in a few minutes.",
   failed: "We couldn't connect that account. Please try again — for Instagram, make sure it's a Business or Creator account.",
 };
@@ -80,6 +81,7 @@ export default async function SocialAccountsPage({
   const limit = (limits as { feature_key: string; limit_value: number | null }[] | null)
     ?.find((l) => l.feature_key === "social_accounts.max")?.limit_value;
   const connectable = tokenEncryptionConfigured() ? configuredProviders() : [];
+  const comingSoon = PROVIDER_KEYS.filter((k) => !connectable.some((p) => p.key === k)).map((k) => getProvider(k)!);
   const connectedKeys = new Set(list.filter((a) => a.connection_type === "oauth").map((a) => a.platforms.key));
   const connectedLabel = sp.connected ? getProvider(sp.connected)?.label : null;
 
@@ -103,21 +105,24 @@ export default async function SocialAccountsPage({
           title="Connect for verified numbers"
           description="Sign in with the platform. Companies see these numbers labelled Verified, and they refresh daily."
         >
-          {connectable.length === 0 ? (
-            <p className="text-sm text-muted">
-              Official connections to Instagram, TikTok and YouTube are being set up. Until then, add accounts below and upload
-              screenshots on the Analytics page to request verification.
-            </p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {connectable.map((p) => (
-                <ButtonLink key={p.key} href={`/creator/connect/${p.key}`} variant={connectedKeys.has(p.key) ? "secondary" : "primary"}>
-                  <Link2 className="size-4" aria-hidden />
-                  {connectedKeys.has(p.key) ? `Connect another ${p.label} account` : `Connect ${p.label}`}
-                </ButtonLink>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-3">
+            {connectable.map((p) => (
+              <ButtonLink key={p.key} href={`/creator/connect/${p.key}`} variant={connectedKeys.has(p.key) ? "secondary" : "primary"}>
+                <Link2 className="size-4" aria-hidden />
+                {connectedKeys.has(p.key) ? `Connect another ${p.label} account` : `Connect ${p.label}`}
+              </ButtonLink>
+            ))}
+            {comingSoon.map((p) => (
+              <span key={p.key} title="Coming soon"
+                className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-xl border border-dashed border-line-strong px-4 text-sm font-medium text-muted">
+                <Link2 className="size-4" aria-hidden /> {p.label} · coming soon
+              </span>
+            ))}
+          </div>
+          <p className="mt-3 text-sm text-muted">
+            Shopping and affiliate platforms (Amazon Storefront, LTK, ShopMy) don&apos;t offer a way to connect yet — add them below
+            and upload screenshots on the Analytics page to get your numbers reviewed.
+          </p>
         </Section>
 
         <Section

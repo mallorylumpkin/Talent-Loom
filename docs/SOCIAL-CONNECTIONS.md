@@ -1,6 +1,6 @@
 # Connected social accounts — setup guide
 
-Creators can connect **YouTube, Instagram and TikTok** with each platform's own sign-in. TalentLoom then reads their
+Creators can connect **YouTube, Instagram, TikTok and Facebook Pages** with each platform's own sign-in. TalentLoom then reads their
 numbers directly from the platform's official API, refreshes them daily, and companies see them labelled
 **Verified · connected**. Anything a creator types stays **Self-reported**; numbers our team checks from screenshots
 are **Verified · reviewed**.
@@ -30,6 +30,7 @@ What's read:
 | YouTube | Subscribers (unless hidden by the creator) | Last 12 videos | Last 12 videos | ✓ |
 | Instagram | Followers | — (needs an extra Instagram permission; not requested yet) | Last 12 posts | ✓ |
 | TikTok | Followers | Last 20 videos | Last 20 videos | ✓ |
+| Facebook Page | Page followers | — | Last 12 posts (reactions count as likes) | ✓ |
 
 Engagement rate = (average likes + average comments) ÷ followers × 100. 30-day growth is only calculated against
 earlier *connected* numbers, never against typed ones. Audience demographics aren't read from platforms yet.
@@ -74,6 +75,7 @@ Restart `npm run dev` after editing `.env.local`.
 | YouTube | `http://localhost:3002/api/oauth/youtube/callback` | `https://YOUR-DOMAIN/api/oauth/youtube/callback` |
 | Instagram | — (needs https) | `https://YOUR-DOMAIN/api/oauth/instagram/callback` |
 | TikTok | — (needs https) | `https://YOUR-DOMAIN/api/oauth/tiktok/callback` |
+| Facebook | — (needs https) | `https://YOUR-DOMAIN/api/oauth/facebook/callback` |
 
 `YOUR-DOMAIN` must match `NEXT_PUBLIC_SITE_URL` (for example your `….vercel.app` address). Instagram and TikTok only
 accept https web addresses, so test those on your deployed Vercel site.
@@ -129,6 +131,40 @@ for free in Instagram → Settings → Account type and tools. No Facebook Page 
 Before launch: to let any creator connect, request **Advanced Access** for `instagram_business_basic` through
 **App Review**, and complete **Business Verification**. Meta needs your privacy policy URL, a screencast of the connect
 flow, and an explanation of how the data is used.
+
+---
+
+## Step 2b — Facebook Pages (same Meta app as Instagram)
+
+Only **Facebook Pages** can connect (creator or business Pages). Personal profiles can't — that's Facebook's rule.
+When connecting, Facebook lets the creator tick which Pages to share; each Page becomes its own account in TalentLoom.
+
+1. In your Meta app (from Step 2) → **Add product** → **Facebook Login for Business** (or **Facebook Login**) → **Settings**.
+2. Under **Valid OAuth Redirect URIs**, add the Facebook redirect URL from the table above → **Save changes**.
+3. **App settings → Basic**: copy the **App ID** and **App secret** (these are the Meta ones at the top, not the Instagram ones):
+   ```
+   FACEBOOK_APP_ID=...
+   FACEBOOK_APP_SECRET=...
+   ```
+4. While the app is in development mode, only people with a role on the app (App roles → Roles) can connect.
+
+Before launch: request **Advanced Access** for `pages_show_list` and `pages_read_engagement` in **App Review**, with
+Business Verification — usually in the same review as Instagram.
+
+---
+
+## Shopping & affiliate platforms (Amazon, LTK, ShopMy)
+
+Creators can add **Amazon Storefront**, **LTK** and **ShopMy** as accounts, with a link and their numbers. These are
+labelled **Self-reported**, and creators can upload screenshots to have TalentLoom staff review them.
+
+Why there's no "Connect" button (checked October 2026):
+- **Amazon**: the Associates "Creators API" only returns product catalog data (and needs 10 sales in 30 days). It
+  doesn't give apps access to a creator's earnings, clicks or audience.
+- **LTK**: its developer API is for approved brand/affiliate partners; there's no creator sign-in for other apps.
+- **ShopMy**: has a partner API with creator sign-in, but it covers profile, links and collections — not earnings or
+  audience numbers — and needs partner approval. If you'd like, apply as a ShopMy developer partner and TalentLoom can
+  add "verified ShopMy account" (proves the creator owns it) later.
 
 ---
 

@@ -58,7 +58,10 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Security suite extended — 93 checks passing
 
 ## Connected social accounts ✅ (built; each platform needs its developer app — see docs/SOCIAL-CONNECTIONS.md)
-- ✅ Connect YouTube (Google OAuth), Instagram (Instagram Login, Business/Creator accounts) and TikTok (Login Kit v2)
+- ✅ Connect YouTube (Google OAuth), Instagram (Instagram Login, Business/Creator accounts), TikTok (Login Kit v2)
+  and Facebook Pages (Facebook Login; several Pages in one go)
+- ✅ Amazon Storefront, LTK and ShopMy available as manual (self-reported) accounts — no creator-data APIs exist
+- ✅ Platforms not yet configured show as "coming soon"
 - ✅ Consent screen before connecting; read-only scopes; "Connect" only shown for platforms whose keys are configured
 - ✅ Signed state cookie on the callback; tokens encrypted with AES-256-GCM; tokens never readable by users
 - ✅ Numbers stored as API-verified ("Verified · connected"); followers, avg views/likes/comments, engagement, 30-day growth

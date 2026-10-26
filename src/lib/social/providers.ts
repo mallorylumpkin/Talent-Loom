@@ -10,8 +10,8 @@ import { publicEnv } from "@/lib/env";
  * over the account's most recent posts (up to 12 on Instagram/YouTube, 20 on TikTok).
  */
 
-export type ProviderKey = "instagram" | "tiktok" | "youtube";
-export const PROVIDER_KEYS: ProviderKey[] = ["instagram", "tiktok", "youtube"];
+export type ProviderKey = "instagram" | "tiktok" | "youtube" | "facebook";
+export const PROVIDER_KEYS: ProviderKey[] = ["instagram", "tiktok", "youtube", "facebook"];
 
 export interface TokenSet {
   accessToken: string;
@@ -52,6 +52,11 @@ export interface Provider {
   needsRefresh(tokens: TokenSet): boolean;
   refresh(tokens: TokenSet): Promise<TokenSet>;
   fetchAccount(tokens: TokenSet): Promise<AccountData>;
+  /**
+   * Platforms where one sign-in can share several accounts (Facebook Pages).
+   * Each result carries the token that belongs to that account.
+   */
+  fetchAccounts?(tokens: TokenSet): Promise<{ data: AccountData; tokens: TokenSet }[]>;
   /** Best effort; some platforms have no revoke endpoint. */
   revoke(tokens: TokenSet): Promise<void>;
 }
@@ -471,7 +476,119 @@ const tiktok: Provider = {
   },
 };
 
-const PROVIDERS: Record<ProviderKey, Provider> = { instagram, tiktok, youtube };
+
+/* ---------- Facebook Pages (Facebook Login + Graph API) ---------- */
+
+const FB_VERSION = "v23.0";
+const FB_GRAPH = `https://graph.facebook.com/${FB_VERSION}`;
+
+interface FbPage {
+  id: string; name?: string; username?: string; link?: string; followers_count?: number; fan_count?: number; access_token?: string;
+}
+
+async function fbPageData(pageToken: string, page?: FbPage): Promise<AccountData> {
+  const p = page?.id && page.followers_count !== undefined ? page : await call<FbPage>(
+    "Facebook",
+    `${FB_GRAPH}/me?${new URLSearchParams({ fields: "id,name,username,link,followers_count,fan_count", access_token: pageToken })}`,
+  );
+  const posts = await call<{ data?: { reactions?: { summary?: { total_count?: number } }; comments?: { summary?: { total_count?: number } } }[] }>(
+    "Facebook",
+    `${FB_GRAPH}/${encodeURIComponent(p.id)}/posts?${new URLSearchParams({
+      fields: "reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0)",
+      limit: "12",
+      access_token: pageToken,
+    })}`,
+  );
+  const items = posts.data ?? [];
+  const followers = num(p.followers_count ?? p.fan_count);
+  const avgLikes = average(items.map((i) => num(i.reactions?.summary?.total_count)));
+  const avgComments = average(items.map((i) => num(i.comments?.summary?.total_count)));
+  return {
+    externalId: p.id,
+    username: p.username ?? p.name ?? p.id,
+    url: p.link ?? (p.username ? `https://www.facebook.com/${p.username}` : `https://www.facebook.com/${p.id}`),
+    followers,
+    avgViews: null,
+    avgLikes, // reactions
+    avgComments,
+    engagementRate: engagement(followers, avgLikes, avgComments),
+    raw: { platform: "facebook", page_name: p.name ?? null, recent_posts_sampled: items.length, likes_are_reactions: true },
+  };
+}
+
+const facebook: Provider = {
+  key: "facebook",
+  label: "Facebook",
+  requirement: "Facebook Pages you manage (creator or business Pages). Personal profiles can't be connected — that's Facebook's rule.",
+  configured: () => !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
+  authorizeUrl(state, redirectUri) {
+    const p = new URLSearchParams({
+      client_id: process.env.FACEBOOK_APP_ID!,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "pages_show_list,pages_read_engagement",
+      state,
+    });
+    return `https://www.facebook.com/${FB_VERSION}/dialog/oauth?${p}`;
+  },
+  async exchangeCode(code, redirectUri) {
+    const short = await call<{ access_token: string }>(
+      "Facebook",
+      `${FB_GRAPH}/oauth/access_token?${new URLSearchParams({
+        client_id: process.env.FACEBOOK_APP_ID!,
+        client_secret: process.env.FACEBOOK_APP_SECRET!,
+        redirect_uri: redirectUri,
+        code,
+      })}`,
+    );
+    // Long-lived user token → Page tokens fetched with it don't expire.
+    const long = await call<{ access_token: string; expires_in?: number }>(
+      "Facebook",
+      `${FB_GRAPH}/oauth/access_token?${new URLSearchParams({
+        grant_type: "fb_exchange_token",
+        client_id: process.env.FACEBOOK_APP_ID!,
+        client_secret: process.env.FACEBOOK_APP_SECRET!,
+        fb_exchange_token: short.access_token,
+      })}`,
+    );
+    return {
+      accessToken: long.access_token,
+      expiresAt: isoIn(long.expires_in),
+      obtainedAt: new Date().toISOString(),
+      scopes: ["pages_show_list", "pages_read_engagement"],
+    };
+  },
+  needsRefresh: () => false,
+  async refresh() {
+    throw new ProviderError("Facebook needs you to reconnect.", true);
+  },
+  async fetchAccounts(userTokens) {
+    const pages = await call<{ data?: FbPage[] }>(
+      "Facebook",
+      `${FB_GRAPH}/me/accounts?${new URLSearchParams({
+        fields: "id,name,username,link,followers_count,fan_count,access_token",
+        limit: "25",
+        access_token: userTokens.accessToken,
+      })}`,
+    );
+    const list = (pages.data ?? []).filter((p) => p.access_token);
+    if (!list.length) {
+      throw new ProviderError("No Facebook Pages were shared. Try again and select at least one Page you manage.");
+    }
+    return Promise.all(list.map(async (p) => ({
+      data: await fbPageData(p.access_token!, p),
+      tokens: { accessToken: p.access_token!, obtainedAt: new Date().toISOString(), expiresAt: null, scopes: userTokens.scopes },
+    })));
+  },
+  // Stored tokens are Page tokens.
+  fetchAccount: (t) => fbPageData(t.accessToken),
+  async revoke() {
+    // Page tokens can't revoke the app; tokens are deleted on our side. Creators can also remove
+    // TalentLoom in Facebook → Settings → Business integrations.
+  },
+};
+
+const PROVIDERS: Record<ProviderKey, Provider> = { instagram, tiktok, youtube, facebook };
 
 export function getProvider(key: string): Provider | null {
   return (PROVIDER_KEYS as string[]).includes(key) ? PROVIDERS[key as ProviderKey] : null;

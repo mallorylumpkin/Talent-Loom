@@ -46,33 +46,48 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const tokens = await provider.exchangeCode(q.get("code")!, redirectUriFor(provider.key));
-    const data = await provider.fetchAccount(tokens);
+    // Most platforms share one account; Facebook can share several Pages at once.
+    const accounts = provider.fetchAccounts
+      ? await provider.fetchAccounts(tokens)
+      : [{ data: await provider.fetchAccount(tokens), tokens }];
 
     const admin = createAdminClient();
-    const { data: accountId, error } = await admin.rpc("attach_oauth_account", {
-      p_user_id: viewer.id,
-      p_platform_key: provider.key,
-      p_external_id: data.externalId,
-      p_username: data.username,
-      p_url: data.url,
-      p_scopes: tokens.scopes,
-      p_encrypted_tokens: encryptJson(tokens),
-      p_token_expires_at: tokens.expiresAt ?? null,
-    });
-    if (error || !accountId) {
-      console.error("[oauth:attach]", error?.code, error?.message);
-      if (error?.message === "already_connected_elsewhere") return back({ connect_error: "taken", platform: provider.key });
-      if (error?.message?.includes("social accounts")) return back({ connect_error: "limit", platform: provider.key });
-      return back({ connect_error: "failed", platform: provider.key });
+    let connected = 0;
+    let syncFailed = false;
+    let lastError: string | null = null;
+    for (const { data, tokens: accountTokens } of accounts) {
+      const { data: accountId, error } = await admin.rpc("attach_oauth_account", {
+        p_user_id: viewer.id,
+        p_platform_key: provider.key,
+        p_external_id: data.externalId,
+        p_username: data.username,
+        p_url: data.url,
+        p_scopes: accountTokens.scopes,
+        p_encrypted_tokens: encryptJson(accountTokens),
+        p_token_expires_at: accountTokens.expiresAt ?? null,
+      });
+      if (error || !accountId) {
+        console.error("[oauth:attach]", error?.code, error?.message);
+        lastError = error?.message === "already_connected_elsewhere" ? "taken"
+          : error?.message?.includes("social accounts") ? "limit" : "failed";
+        continue;
+      }
+      connected++;
+      const saved = await recordSnapshot(accountId as string, data);
+      if (!saved.ok) syncFailed = true;
     }
 
-    const saved = await recordSnapshot(accountId as string, data);
     const supabase = await createClient();
     const { data: cp } = await supabase.from("creator_profiles").select("id").eq("user_id", viewer.id).single();
     if (cp) await refreshCompleteness(supabase, cp.id);
-    return back(saved.ok ? { connected: provider.key } : { connected: provider.key, connect_error: "sync" });
+    if (!connected) return back({ connect_error: lastError ?? "failed", platform: provider.key });
+    if (lastError) return back({ connected: provider.key, connect_error: lastError, platform: provider.key });
+    return back(syncFailed ? { connected: provider.key, connect_error: "sync" } : { connected: provider.key });
   } catch (e) {
     if (!(e instanceof ProviderError)) console.error("[oauth:callback]", e);
-    return back({ connect_error: e instanceof ProviderError && e.message.includes("YouTube channel") ? "no_channel" : "failed", platform: provider.key });
+    const code = e instanceof ProviderError
+      ? e.message.includes("YouTube channel") ? "no_channel" : e.message.includes("No Facebook Pages") ? "no_pages" : "failed"
+      : "failed";
+    return back({ connect_error: code, platform: provider.key });
   }
 }
