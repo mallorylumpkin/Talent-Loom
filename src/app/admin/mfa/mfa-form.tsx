@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,12 @@ export function MfaForm() {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const started = useRef(false);
 
   useEffect(() => {
+    // Development mode runs effects twice; only start enrolment once.
+    if (started.current) return;
+    started.current = true;
     const supabase = createClient();
     (async () => {
       const { data, error: listError } = await supabase.auth.mfa.listFactors();
@@ -37,10 +41,14 @@ export function MfaForm() {
       }
       const { data: enrolled, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: "TalentLoom admin",
+        friendlyName: `TalentLoom admin ${new Date().toISOString().slice(0, 16)}`,
       });
       if (enrollError || !enrolled) {
-        setError("We couldn't start two-factor setup. Make sure MFA (TOTP) is enabled in Supabase → Authentication.");
+        console.error("[mfa] enroll failed", enrollError);
+        setError(
+          `We couldn't start two-factor setup (${enrollError?.message ?? "unknown error"}). ` +
+            "Check that TOTP is enabled in Supabase → Authentication → Multi-Factor, then refresh this page.",
+        );
         return;
       }
       setMode({ kind: "enroll", factorId: enrolled.id, qr: enrolled.totp.qr_code, secret: enrolled.totp.secret });
