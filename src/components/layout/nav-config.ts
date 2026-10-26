@@ -18,9 +18,9 @@ export const creatorNav: NavSection[] = [
   {
     items: [
       { label: "Dashboard", href: "/creator", icon: "LayoutDashboard" },
-      { label: "Inquiries", href: "/creator/inquiries", icon: "Inbox", phase: 4 },
-      { label: "Messages", href: "/creator/messages", icon: "MessageCircle", phase: 4 },
-      { label: "Notifications", href: "/creator/notifications", icon: "Bell", phase: 4 },
+      { label: "Inquiries", href: "/creator/inquiries", icon: "Inbox" },
+      { label: "Messages", href: "/creator/messages", icon: "MessageCircle" },
+      { label: "Notifications", href: "/creator/notifications", icon: "Bell" },
     ],
   },
   {
@@ -57,10 +57,11 @@ export const companyNav: NavSection[] = [
       { label: "Dashboard", href: "/company", icon: "LayoutDashboard" },
       { label: "Creator search", href: "/company/search", icon: "Search" },
       { label: "Saved talent", href: "/company/lists", icon: "Bookmark" },
-      { label: "Pipeline", href: "/company/pipeline", icon: "Columns3", phase: 4 },
-      { label: "Inquiries", href: "/company/inquiries", icon: "Send", phase: 4 },
-      { label: "Messages", href: "/company/messages", icon: "MessageCircle", phase: 4 },
-      { label: "Roster", href: "/company/roster", icon: "Users", phase: 4 },
+      { label: "Pipeline", href: "/company/pipeline", icon: "Columns3" },
+      { label: "Inquiries", href: "/company/inquiries", icon: "Send" },
+      { label: "Messages", href: "/company/messages", icon: "MessageCircle" },
+      { label: "Notifications", href: "/company/notifications", icon: "Bell" },
+      { label: "Roster", href: "/company/roster", icon: "Users" },
     ],
   },
   {

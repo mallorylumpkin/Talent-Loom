@@ -71,12 +71,21 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ⬜ Platform reviews for public use: Google verification, Meta Advanced Access + Business Verification, TikTok app review
 - ⬜ Later: audience demographics from platform insights; Instagram views (extra Instagram permission)
 
-## Phase 4 — Relationships 🔜
-- ⬜ Representation inquiries (atomic, plan-limited, rate-limited)
-- ⬜ Messaging with realtime, unread counts, archive, block, report
-- ⬜ Recruiting pipeline board, notes, assignments, signed-talent roster
-- ⬜ In-app notifications
-- ⬜ Public company profile pages (shown to creators with inquiries)
+## Phase 4 — Relationships ✅ (built; please test locally)
+- ✅ Representation inquiries: one open inquiry per creator, monthly new-creator limit by plan, 20/hour rate limit,
+  30-day cool-off after a decline, approved & unfrozen companies only — all inside one database function
+- ✅ Creator inquiry inbox with company details, accept / decline, block company, report
+- ✅ Accepting opens a conversation (the inquiry becomes the first message); decline notifies the company
+- ✅ Messaging for both sides: inbox, archive, unread counts in the sidebar, live updates (Supabase Realtime),
+  block / unblock, report; messages are plain text and can't be edited; 30 messages/minute limit
+- ✅ Notifications page + live sidebar counts; one "new message" alert per conversation (no spam)
+- ✅ Company inquiries page with monthly usage and withdraw
+- ✅ Pipeline board: stages, move creators, "only my creators", team assignments (Agency plans), extra pipelines
+  (plan limit), custom stages (Agency Pro), stage history; inquiries/acceptance move creators forward automatically
+- ✅ Internal notes (private, or shared with team on Agency plans) on each creator
+- ✅ Signed roster (Agency plans): moving to "Signed" adds the creator; contract dates, status, renewal flag
+- ✅ Company profile pages for signed-in members (approved companies only), linked from inquiries and messages
+- ✅ Security suite extended — 159 checks passing
 
 ## Phase 5 — Admin console
 - ⬜ Users, creators, companies (full lifecycle), verification queue, reports

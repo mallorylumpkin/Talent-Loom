@@ -39,7 +39,7 @@ src/
   proxy.ts           Refreshes the auth session on every request
 supabase/
   migrations/        Database schema, security policies, storage, reference data
-  tests/             Security test suite (115 checks)
+  tests/             Security test suite (159 checks)
 scripts/             create-admin and fictional sample-data scripts
 docs/                Setup, social connections, security model, build checklist
 ```

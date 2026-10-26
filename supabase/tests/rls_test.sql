@@ -544,6 +544,198 @@ select pg_temp.ok((select count(*) > 0 from audit_logs where target_type = 'soci
                    and not (after ? 'encrypted_tokens')),
   'SC-20. connections are audit-logged without tokens');
 
+-- ---------------------------------------------------------------------
+-- Phase 4: inquiries, messaging, pipeline, roster (all fictional)
+--  P, Q = discoverable creators · Z = hidden creator
+--  Company X (approved, Scout plan): R owner · S recruiter · V viewer
+--  Company Y (submitted): W owner
+-- ---------------------------------------------------------------------
+select pg_temp.as_postgres();
+insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data) values
+  ('00000000-0000-0000-0000-000000000031', 'pia@example.com', '{"age_18_plus":"true","display_name":"Pia (fictional)"}', '{}'),
+  ('00000000-0000-0000-0000-000000000032', 'quinn@example.com', '{"age_18_plus":"true","display_name":"Quinn (fictional)"}', '{}'),
+  ('00000000-0000-0000-0000-000000000037', 'zed@example.com', '{"age_18_plus":"true"}', '{}'),
+  ('00000000-0000-0000-0000-000000000033', 'rae@x-agency.example', '{"display_name":"Rae"}', '{"account_type":"company_member"}'),
+  ('00000000-0000-0000-0000-000000000034', 'sam@x-agency.example', '{"display_name":"Sam"}', '{"account_type":"company_member"}'),
+  ('00000000-0000-0000-0000-000000000035', 'val@x-agency.example', '{}', '{"account_type":"company_member"}'),
+  ('00000000-0000-0000-0000-000000000036', 'wes@y-agency.example', '{}', '{"account_type":"company_member"}');
+insert into consents (user_id, consent_type, document_version)
+select u, t, 't1' from unnest(array['00000000-0000-0000-0000-000000000031','00000000-0000-0000-0000-000000000032']::uuid[]) u,
+  unnest(array['creator_data_consent','discoverability']) t;
+update creator_profiles set is_discoverable = true, discoverable_consent_at = now(),
+  handle = case user_id when '00000000-0000-0000-0000-000000000031' then 'pia.fictional' else 'quinn.fictional' end
+where user_id in ('00000000-0000-0000-0000-000000000031', '00000000-0000-0000-0000-000000000032');
+
+insert into companies (id, slug, name, status) values
+  ('10000000-0000-0000-0000-000000000009', 'x-agency', 'X Agency (fictional)', 'approved'),
+  ('10000000-0000-0000-0000-00000000000a', 'y-agency', 'Y Agency (fictional)', 'submitted');
+insert into subscriptions (owner_type, owner_id, plan_id, status, collection_method, is_complimentary)
+select 'company', '10000000-0000-0000-0000-000000000009', id, 'complimentary', 'none', true from plans where key = 'management_scout';
+insert into subscriptions (owner_type, owner_id, plan_id, status, collection_method, is_complimentary)
+select 'company', '10000000-0000-0000-0000-00000000000a', id, 'complimentary', 'none', true from plans where key = 'management_scout';
+insert into entitlement_overrides (owner_type, owner_id, feature_key, enabled, limit_value)
+values ('company', '10000000-0000-0000-0000-000000000009', 'seats.max', true, 5);
+insert into company_members (company_id, user_id, role_id)
+select '10000000-0000-0000-0000-000000000009', u, (select id from company_roles where key = k and company_id is null)
+from (values ('00000000-0000-0000-0000-000000000033'::uuid, 'owner'), ('00000000-0000-0000-0000-000000000034'::uuid, 'recruiter'),
+             ('00000000-0000-0000-0000-000000000035'::uuid, 'viewer')) v(u, k);
+insert into company_members (company_id, user_id, role_id)
+select '10000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000036', id from company_roles where key = 'owner' and company_id is null;
+
+create temp table ids as
+select (select id from creator_profiles where user_id = '00000000-0000-0000-0000-000000000031') as pia,
+       (select id from creator_profiles where user_id = '00000000-0000-0000-0000-000000000032') as quinn,
+       (select id from creator_profiles where user_id = '00000000-0000-0000-0000-000000000037') as zed;
+grant select on ids to authenticated, anon;
+
+-- Sending
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.ok(public.send_inquiry('10000000-0000-0000-0000-000000000009', (select pia from ids),
+  'Representation chat', 'Hi Pia, we love your wellness content and would like to talk about representation.') is not null,
+  'R1. an approved company recruiter can send an inquiry');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select pia from ids),
+  'Again', 'Following up on our earlier note about representation.')$$, 'R2. only one open inquiry per creator');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select zed from ids),
+  'Hello there', 'A message long enough to pass the length check.')$$, 'R3. hidden creators cannot be contacted');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'Hi', 'short')$$, 'R4. inquiries need a real subject and message');
+select pg_temp.ok((select s.name = 'Contacted' from pipeline_entries e join pipeline_stages s on s.id = e.stage_id
+                   where e.creator_id = (select pia from ids)), 'R5. sending moves the creator to Contacted in the pipeline');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000035');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'Hello Quinn', 'A message long enough to pass the length check.')$$, 'R6. a viewer cannot send inquiries');
+select pg_temp.login('00000000-0000-0000-0000-000000000036');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-00000000000a', (select quinn from ids),
+  'Hello Quinn', 'A message long enough to pass the length check.')$$, 'R7. an unapproved company cannot send inquiries');
+
+select pg_temp.as_postgres();
+insert into entitlement_overrides (owner_type, owner_id, feature_key, enabled, limit_value)
+values ('company', '10000000-0000-0000-0000-000000000009', 'contacts.monthly', true, 1);
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'Hello Quinn', 'A message long enough to pass the length check.')$$, 'R8. the monthly new-creator contact limit is enforced');
+select pg_temp.as_postgres();
+delete from entitlement_overrides where feature_key = 'contacts.monthly' and owner_id = '10000000-0000-0000-0000-000000000009';
+
+-- Receiving
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.ok((select count(*) = 1 from notifications where type = 'inquiry.new'), 'R9. the creator is notified');
+select pg_temp.ok(jsonb_array_length(public.my_inquiries()) = 1 and public.my_inquiries() -> 0 -> 'company' ->> 'slug' = 'x-agency',
+  'R10. the creator sees the inquiry with the company''s details');
+select pg_temp.ok((select public.my_badges() ->> 'inquiries') = '1', 'R11. unanswered inquiries are counted for the sidebar');
+select pg_temp.fails($$insert into messages (conversation_id, sender_user_id, body)
+  select conversation_id, auth.uid(), 'hi' from representation_inquiries$$, 'R12. no messaging before accepting');
+select pg_temp.fails($$select public.company_inquiries('10000000-0000-0000-0000-000000000009')$$,
+  'R13. creators cannot list a company''s inquiries');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000032');
+select pg_temp.fails($$select public.respond_to_inquiry((select id from representation_inquiries limit 1), true)$$,
+  'R14. another creator cannot answer someone else''s inquiry');
+select pg_temp.ok((select count(*) = 0 from representation_inquiries), 'R15. creators only see their own inquiries');
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.fails($$select public.respond_to_inquiry((select id from representation_inquiries limit 1), true)$$,
+  'R16. a company cannot accept its own inquiry');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select public.mark_inquiry_viewed((select id from representation_inquiries limit 1));
+select public.respond_to_inquiry((select id from representation_inquiries limit 1), true);
+select pg_temp.ok((select status = 'open' from conversations) and (select count(*) = 1 from messages),
+  'R17. accepting opens the conversation with the inquiry as the first message');
+insert into messages (conversation_id, sender_user_id, body) select id, auth.uid(), 'Thanks, happy to chat!' from conversations;
+insert into messages (conversation_id, sender_user_id, body) select id, auth.uid(), 'When works for you?' from conversations;
+
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.ok((select count(*) = 1 from notifications where type = 'inquiry.accepted'), 'R18. the sender is told the inquiry was accepted');
+select pg_temp.ok((select count(*) = 1 from notifications where type = 'message.new'),
+  'R19. new messages notify the company sender once per conversation (no spam)');
+select pg_temp.ok((public.my_inbox('10000000-0000-0000-0000-000000000009') -> 0 ->> 'unread') = '2',
+  'R20. unread counts work');
+select public.mark_conversation_read((select id from conversations));
+select pg_temp.ok((public.my_inbox('10000000-0000-0000-0000-000000000009') -> 0 ->> 'unread') = '0'
+                  and (select count(*) = 0 from notifications where type = 'message.new' and read_at is null),
+  'R21. opening a conversation marks it and its alert read');
+select pg_temp.ok((select s.name = 'Responded' from pipeline_entries e join pipeline_stages s on s.id = e.stage_id),
+  'R22. accepting moves the creator to Responded');
+select pg_temp.ok((public.get_conversation((select id from conversations)) ->> 'can_send')::boolean,
+  'R23. the recruiter can reply');
+
+select pg_temp.login('00000000-0000-0000-0000-000000000036');
+select pg_temp.fails($$select public.get_conversation((select id from conversations where company_id = '10000000-0000-0000-0000-000000000009'))$$,
+  'R24. other companies cannot open the conversation');
+select pg_temp.fails($$select public.my_inbox('10000000-0000-0000-0000-000000000009')$$, 'R25. other companies cannot read the inbox');
+
+-- Blocking
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+insert into user_blocks (blocker_user_id, blocked_company_id) values (auth.uid(), '10000000-0000-0000-0000-000000000009');
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.fails($$insert into messages (conversation_id, sender_user_id, body)
+  select id, auth.uid(), 'still there?' from conversations$$, 'R26. a blocked company cannot message');
+select pg_temp.ok((select status = 'blocked' from conversations), 'R27. blocking marks the conversation blocked');
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+delete from user_blocks where blocked_company_id = '10000000-0000-0000-0000-000000000009';
+select pg_temp.ok((select status = 'open' from conversations), 'R28. unblocking re-opens an accepted conversation');
+
+-- Decline, withdraw, cool-off
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select public.withdraw_inquiry(public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'Hello Quinn', 'A message long enough to pass the length check.'));
+select pg_temp.ok((select status = 'withdrawn' from representation_inquiries where creator_id = (select quinn from ids)),
+  'R29. a company can withdraw an unanswered inquiry');
+select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'Hello again', 'A message long enough to pass the length check.');
+select pg_temp.login('00000000-0000-0000-0000-000000000032');
+select public.respond_to_inquiry((select id from representation_inquiries where status = 'sent'), false);
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.ok((select count(*) = 1 from notifications where type = 'inquiry.declined'), 'R30. the sender is told about a decline');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009', (select quinn from ids),
+  'One more try', 'A message long enough to pass the length check.')$$, 'R31. a declined creator can''t be re-contacted for 30 days');
+
+-- Pipeline, notes, roster
+select pg_temp.fails($$insert into pipeline_entries (pipeline_id, creator_id, stage_id)
+  select p.id, (select zed from ids), s.id from pipelines p join pipeline_stages s on s.pipeline_id = p.id
+  where p.company_id = '10000000-0000-0000-0000-000000000009' and s.position = 1$$,
+  'R32. companies cannot add hidden creators they have no relationship with');
+select pg_temp.fails($$insert into internal_notes (company_id, creator_id, author_id, body, visibility)
+  values ('10000000-0000-0000-0000-000000000009', (select zed from ids), auth.uid(), 'note', 'private')$$,
+  'R33. companies cannot write notes about unknown hidden creators');
+select pg_temp.ok(pg_temp.affected($$insert into internal_notes (company_id, creator_id, author_id, body, visibility)
+  values ('10000000-0000-0000-0000-000000000009', (select pia from ids), auth.uid(), 'Great fit for wellness brands', 'private')$$) = 1,
+  'R34. recruiters can write private notes');
+select pg_temp.fails($$update pipeline_entries set assigned_to = '00000000-0000-0000-0000-000000000033'
+  where creator_id = (select pia from ids)$$, 'R35. assignments need the team-assignments plan feature');
+update pipeline_entries set stage_id = (select s.id from pipeline_stages s join pipelines p on p.id = s.pipeline_id
+  where p.company_id = '10000000-0000-0000-0000-000000000009' and s.kind = 'signed')
+where creator_id = (select pia from ids);
+select pg_temp.ok((select count(*) = 0 from roster_members), 'R36. no roster without the roster plan feature');
+select pg_temp.ok((select count(*) >= 3 from pipeline_stage_history), 'R37. stage moves are recorded in history');
+select pg_temp.ok(jsonb_array_length(public.pipeline_board((select id from pipelines where is_default
+  and company_id = '10000000-0000-0000-0000-000000000009')) -> 'entries') = 2, 'R38. the board shows the company''s entries');
+
+select pg_temp.as_postgres();
+insert into entitlement_overrides (owner_type, owner_id, feature_key, enabled, limit_value) values
+  ('company', '10000000-0000-0000-0000-000000000009', 'roster', true, null),
+  ('company', '10000000-0000-0000-0000-000000000009', 'team_assignments', true, null);
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+update pipeline_entries set stage_id = (select s.id from pipeline_stages s join pipelines p on p.id = s.pipeline_id
+  where p.company_id = '10000000-0000-0000-0000-000000000009' and s.name = 'Offered') where creator_id = (select pia from ids);
+update pipeline_entries set stage_id = (select s.id from pipeline_stages s join pipelines p on p.id = s.pipeline_id
+  where p.company_id = '10000000-0000-0000-0000-000000000009' and s.kind = 'signed') where creator_id = (select pia from ids);
+select pg_temp.ok((select count(*) = 1 from roster_members where creator_id = (select pia from ids)),
+  'R39. moving to Signed adds the creator to the roster');
+select pg_temp.fails($$update pipeline_entries set assigned_to = '00000000-0000-0000-0000-000000000036'
+  where creator_id = (select pia from ids)$$, 'R40. only teammates can be assigned');
+select pg_temp.ok(pg_temp.affected($$update pipeline_entries set assigned_to = '00000000-0000-0000-0000-000000000033'
+  where creator_id = (select pia from ids)$$) = 1, 'R41. teammates can be assigned with the plan feature');
+
+-- Company profile
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.ok(public.get_company_profile('x-agency') ->> 'name' = 'X Agency (fictional)',
+  'R42. signed-in creators can view an approved company''s profile');
+select pg_temp.ok(public.get_company_profile('y-agency') is null, 'R43. unapproved companies have no profile');
+select pg_temp.as_anon();
+select pg_temp.fails($$select public.get_company_profile('x-agency')$$, 'R44. visitors cannot view company profiles');
+
 select pg_temp.as_postgres();
 \echo
 \echo ===== ALL SECURITY TESTS PASSED =====

@@ -25,11 +25,13 @@ interface ShellProps {
   user: { name: string; email: string; roleLabel: string };
   tone?: "light" | "admin";
   banner?: React.ReactNode;
+  /** Unread counts keyed by nav href, shown as small pills. */
+  badges?: Record<string, number>;
   children: React.ReactNode;
 }
 
-function NavList({ nav, pathname, homeHref, onNavigate, dark }: {
-  nav: NavSection[]; pathname: string; homeHref: string; onNavigate?: () => void; dark: boolean;
+function NavList({ nav, pathname, homeHref, onNavigate, dark, badges }: {
+  nav: NavSection[]; pathname: string; homeHref: string; onNavigate?: () => void; dark: boolean; badges?: Record<string, number>;
 }) {
   return (
     <nav aria-label="Main" className="space-y-6">
@@ -66,7 +68,13 @@ function NavList({ nav, pathname, homeHref, onNavigate, dark }: {
                 <li key={item.href}>
                   <Link href={item.href} className={itemClass} aria-current={active ? "page" : undefined} onClick={onNavigate}>
                     <Icon className="size-4 shrink-0" aria-hidden />
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {!!badges?.[item.href] && (
+                      <span className="rounded-full bg-accent px-1.5 text-[11px] font-semibold text-white"
+                        aria-label={`${badges[item.href]} new`}>
+                        {badges[item.href] > 99 ? "99+" : badges[item.href]}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -100,7 +108,7 @@ function UserBlock({ user, dark }: { user: ShellProps["user"]; dark: boolean }) 
   );
 }
 
-export function AppShell({ nav, homeHref, user, tone = "light", banner, children }: ShellProps) {
+export function AppShell({ nav, homeHref, user, tone = "light", banner, badges, children }: ShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const dark = tone === "admin";
@@ -119,7 +127,7 @@ export function AppShell({ nav, homeHref, user, tone = "light", banner, children
         <Logo href={homeHref} showDescriptor={false} />
       </div>
       <div className="flex-1 overflow-y-auto">
-        <NavList nav={nav} pathname={pathname} homeHref={homeHref} dark={dark} onNavigate={() => setOpen(false)} />
+        <NavList nav={nav} pathname={pathname} homeHref={homeHref} dark={dark} badges={badges} onNavigate={() => setOpen(false)} />
       </div>
       <UserBlock user={user} dark={dark} />
     </div>

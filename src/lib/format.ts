@@ -30,3 +30,22 @@ export const representationLabels: Record<string, string> = {
   represented: "Currently represented",
   open_to_switch: "Represented, open to switching",
 };
+
+/** "just now", "5m ago", "3h ago", "Yesterday", then a short date. */
+export function relativeTime(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.round(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h}h ago`;
+  if (h < 48) return "Yesterday";
+  return shortDate(iso);
+}
+
+/** Date and time, e.g. "Oct 26, 2026, 11:24 AM". */
+export function dateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+}

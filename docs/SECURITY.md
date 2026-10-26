@@ -19,6 +19,10 @@
 - Creator-entered analytics are always stored as **self-reported**; editing staff-verified numbers resets them.
 - **Connected accounts:** only server code can mark an account as connected or write API-verified numbers. Platform tokens are encrypted (AES-256-GCM, `TOKEN_ENCRYPTION_KEY`) before storage, are not readable by any signed-in user (column-level grants), never enter the audit log, and are wiped when the account is removed, disconnected, or consent is withdrawn. The OAuth callback requires a signed, 15-minute, user-bound state cookie. Creators can't edit synced numbers, type numbers for a connected account, or change a connected account's handle; one platform account can be connected to only one creator. The daily sync endpoint requires `CRON_SECRET`.
 - Messages require an open (accepted) conversation, an approved company, no block, and a matching sender; they can't be edited.
+- **Inquiries** are sent only through `send_inquiry()`, which checks role permission, company approval, outreach freeze, the creator's discoverability and blocks, one open inquiry per creator, a 30-day cool-off after a decline, the plan's monthly contact limit (under a per-company lock so it can't be raced) and a 20-per-hour rate limit. Only the creator can accept or decline.
+- Blocking a company declines its open inquiries and blocks the conversation immediately; messages are rate-limited (30/minute).
+- Companies can only add creators to pipelines, notes or rosters if the creator is discoverable or already has a relationship with the company. Assignments require the plan feature and an active teammate.
+- Company profiles are only visible to signed-in members, and only for approved companies.
 - Super-admin powers require an **MFA (aal2) session**, checked inside the database.
 - `audit_logs` rejects UPDATE, DELETE and TRUNCATE for every role.
 - Internal helper functions live in a `private` schema that the public API cannot call.

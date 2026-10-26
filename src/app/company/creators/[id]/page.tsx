@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { FileText, Handshake, MapPin, Send, Star } from "lucide-react";
+import Link from "next/link";
+import { FileText, Handshake, MapPin, MessageCircle, Send, Star } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Alert } from "@/components/ui/alert";
 import { Badge, ProvenanceBadge } from "@/components/ui/badge";
@@ -8,7 +9,15 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { CreatorListsForm } from "@/components/company/forms";
 import { ActionButton } from "@/components/forms/confirm-action";
 import { saveCreatorAction } from "@/app/company/_actions/talent";
-import { requireCompany } from "@/lib/company/context";
+import { addToRosterAction, deleteNoteAction, removeEntryAction, withdrawInquiryAction } from "@/app/company/_actions/relationships";
+import {
+  AddToPipelineForm, AssignSelect, NoteForm, SendInquiryForm, StageSelect,
+} from "@/components/company/relationship-forms";
+import { ButtonLink } from "@/components/ui/button";
+import { feature, requireCompany } from "@/lib/company/context";
+import { INQUIRY_STATUS_LABELS, type InquiryStatus } from "@/lib/messaging/types";
+import { INQUIRY_TONES } from "@/lib/messaging/inquiry";
+import { relativeTime } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { countryName } from "@/lib/countries";
 import { compactNumber, percent, representationLabels, shortDate } from "@/lib/format";
@@ -19,6 +28,16 @@ import { publicStorageUrl } from "@/lib/uploads";
 export const metadata: Metadata = { title: "Creator" };
 
 type Detail = PublicProfile & { view_level: number; saved_list_ids: string[]; completeness_pct: number };
+
+interface Relationship {
+  inquiry: { id: string; status: InquiryStatus; created_at: string; responded_at: string | null; conversation_id: string | null } | null;
+  conversation: { id: string; status: string } | null;
+  pipelines: { entry_id: string; pipeline_id: string; pipeline: string; stage_id: string; stage: string; assigned_to: string | null }[];
+  roster: { id: string; status: string; signed_at: string; contract_end: string | null } | null;
+  blocked: boolean;
+  reachable: boolean;
+}
+interface Note { id: string; body: string; visibility: "private" | "team"; created_at: string; mine: boolean; author: string | null }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -32,12 +51,28 @@ function Stat({ label, value }: { label: string; value: string }) {
 export default async function CompanyCreatorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const { supabase, company, permissions } = await requireCompany();
+  const { supabase, company, permissions, entitlements } = await requireCompany();
 
-  const [{ data, error }, { data: lists }] = await Promise.all([
+  const [{ data, error }, { data: lists }, { data: relData }, { data: notesData }, { data: pipelines }, { data: members }] = await Promise.all([
     supabase.rpc("get_creator_for_company", { p_company_id: company.id, p_creator_id: id }),
     supabase.from("talent_lists").select("id, name, is_private").eq("company_id", company.id).order("created_at"),
+    supabase.rpc("creator_relationship", { p_company_id: company.id, p_creator_id: id }),
+    supabase.rpc("creator_notes", { p_company_id: company.id, p_creator_id: id }),
+    supabase.from("pipelines").select("id, name, is_default, pipeline_stages(id, name, position, kind)").eq("company_id", company.id)
+      .order("is_default", { ascending: false }).order("created_at"),
+    supabase.from("company_members").select("user_id, profiles(display_name, email)").eq("company_id", company.id).eq("status", "active"),
   ]);
+  const rel = relData as Relationship | null;
+  const notes = (notesData ?? []) as Note[];
+  type StageRow = { id: string; name: string; position: number; kind: "open" | "signed" | "passed" };
+  const kindOrder = { open: 0, signed: 1, passed: 2 } as const;
+  const pipelineRows = ((pipelines ?? []) as { id: string; name: string; is_default: boolean; pipeline_stages: StageRow[] }[])
+    .map((p) => ({ ...p, pipeline_stages: [...p.pipeline_stages].sort((a, b) => kindOrder[a.kind] - kindOrder[b.kind] || a.position - b.position) }));
+  const memberRows = ((members ?? []) as unknown as { user_id: string; profiles: { display_name: string | null; email: string } | null }[])
+    .map((m) => ({ id: m.user_id, name: m.profiles?.display_name ?? m.profiles?.email ?? "Teammate" }));
+  const canAssign = feature(entitlements, "team_assignments").enabled;
+  const canTeamNotes = feature(entitlements, "shared_notes").enabled;
+  const hasRoster = feature(entitlements, "roster").enabled;
   if (error?.code === "42501") {
     return <Alert tone="warning">Your role doesn't include viewing creator profiles.</Alert>;
   }
@@ -76,10 +111,11 @@ export default async function CompanyCreatorPage({ params }: { params: Promise<{
             {canSave && p.saved_list_ids.length === 0 && (
               <ActionButton action={saveCreatorAction.bind(null, p.id)} tone="primary">Save creator</ActionButton>
             )}
-            <span title="Representation inquiries arrive in the next build phase"
-              className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-xl bg-primary/50 px-3 text-sm font-medium text-white">
-              <Send className="size-4" aria-hidden /> Send inquiry (soon)
-            </span>
+            {rel?.conversation?.status === "open" ? (
+              <ButtonLink href={`/company/messages/${rel.conversation.id}`} size="sm"><MessageCircle className="size-4" aria-hidden /> Message</ButtonLink>
+            ) : permissions.has("inquiries.send") && rel?.reachable && !rel.blocked && !(rel.inquiry && ["sent", "viewed"].includes(rel.inquiry.status)) ? (
+              <ButtonLink href="#inquiry" size="sm"><Send className="size-4" aria-hidden /> Send inquiry</ButtonLink>
+            ) : null}
           </div>
         }
       />
@@ -220,10 +256,92 @@ export default async function CompanyCreatorPage({ params }: { params: Promise<{
               <span className="font-medium text-ink">Open media kit</span>
             </a>
           )}
-          <Card>
-            <CardBody className="text-sm text-muted">
-              Profile {p.completeness_pct}% complete. Notes, pipeline stages and inquiries arrive in the next build phase.
+          <Card id="inquiry" className="scroll-mt-24">
+            <CardHeader title="Representation inquiry" />
+            <CardBody className="space-y-4">
+              {rel?.inquiry && (
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Badge tone={INQUIRY_TONES[rel.inquiry.status]}>{INQUIRY_STATUS_LABELS[rel.inquiry.status]}</Badge>
+                    <span className="text-muted">sent {relativeTime(rel.inquiry.created_at)}</span>
+                  </span>
+                  {["sent", "viewed"].includes(rel.inquiry.status) && permissions.has("inquiries.send") && (
+                    <ActionButton action={withdrawInquiryAction.bind(null, rel.inquiry.id)} tone="danger" confirm="Click again to withdraw">Withdraw</ActionButton>
+                  )}
+                </div>
+              )}
+              {rel?.conversation?.status === "open" ? (
+                <ButtonLink href={`/company/messages/${rel.conversation.id}`} variant="secondary" size="sm">Open conversation</ButtonLink>
+              ) : rel?.blocked ? (
+                <p className="text-sm text-muted">This creator isn&apos;t accepting messages from your company.</p>
+              ) : rel?.inquiry && ["sent", "viewed"].includes(rel.inquiry.status) ? (
+                <p className="text-sm text-muted">Waiting for {p.display_name ?? "the creator"} to respond. You&apos;ll get a notification.</p>
+              ) : !permissions.has("inquiries.send") ? (
+                <p className="text-sm text-muted">Your role doesn&apos;t include sending inquiries.</p>
+              ) : p.view_level === 0 ? (
+                <p className="text-sm text-muted">You can send inquiries once TalentLoom approves your company.</p>
+              ) : !rel?.reachable ? (
+                <p className="text-sm text-muted">This creator isn&apos;t accepting inquiries right now.</p>
+              ) : (
+                <SendInquiryForm creatorId={p.id} firstName={(p.display_name ?? "there").split(/\s+/)[0]} />
+              )}
             </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Pipeline" />
+            <CardBody className="space-y-4">
+              {rel?.pipelines.map((e) => {
+                const pl = pipelineRows.find((x) => x.id === e.pipeline_id);
+                return (
+                  <div key={e.entry_id} className="space-y-2 rounded-xl bg-canvas p-3">
+                    <p className="text-xs font-medium text-muted">{e.pipeline}</p>
+                    <StageSelect entryId={e.entry_id} stageId={e.stage_id} stages={pl?.pipeline_stages ?? []}
+                      disabled={!permissions.has("pipeline.edit")} />
+                    {canAssign && (
+                      <AssignSelect entryId={e.entry_id} assignee={e.assigned_to} members={memberRows}
+                        disabled={!permissions.has("pipeline.edit")} />
+                    )}
+                    {permissions.has("pipeline.edit") && (
+                      <ActionButton action={removeEntryAction.bind(null, e.entry_id)} tone="danger" confirm="Click again to remove">Remove from pipeline</ActionButton>
+                    )}
+                  </div>
+                );
+              })}
+              {permissions.has("pipeline.edit") && pipelineRows.some((pl) => !rel?.pipelines.some((e) => e.pipeline_id === pl.id)) && (
+                <AddToPipelineForm creatorId={p.id}
+                  pipelines={pipelineRows.filter((pl) => !rel?.pipelines.some((e) => e.pipeline_id === pl.id)).map((pl) => ({ id: pl.id, name: pl.name }))} />
+              )}
+              {rel?.roster ? (
+                <p className="text-sm text-success-strong">On your roster{rel.roster.status === "ended" ? " (ended)" : ""} · <Link href="/company/roster" className="underline">View roster</Link></p>
+              ) : hasRoster && permissions.has("roster.manage") ? (
+                <ActionButton action={addToRosterAction.bind(null, p.id)} tone="primary">Add to signed roster</ActionButton>
+              ) : null}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="Internal notes" description="Only your company sees these." />
+            <CardBody className="space-y-4">
+              {permissions.has("notes.write") && <NoteForm creatorId={p.id} allowTeam={canTeamNotes} />}
+              {notes.length > 0 && (
+                <ul className="space-y-3">
+                  {notes.map((n) => (
+                    <li key={n.id} className="rounded-xl border border-line p-3 text-sm">
+                      <p className="whitespace-pre-wrap text-ink">{n.body}</p>
+                      <p className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                        {n.author ?? "Teammate"} · {relativeTime(n.created_at)} · {n.visibility === "team" ? "Team" : "Only you"}
+                        {n.mine && <ActionButton action={deleteNoteAction.bind(null, n.id, p.id)} tone="danger" confirm="Delete?">Delete</ActionButton>}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardBody className="text-sm text-muted">Profile {p.completeness_pct}% complete.</CardBody>
           </Card>
         </aside>
       </div>
