@@ -13,6 +13,12 @@ export async function createCompanyUser(email: string, displayName: string): Pro
   { ok: true; userId: string } | { ok: false; message: string }
 > {
   const admin = createAdminClient();
+  // Tell the database this email is a company account before it's created (Supabase sets app_metadata afterwards).
+  const { error: pendingError } = await admin.rpc("register_pending_company_account", { p_email: email });
+  if (pendingError) {
+    console.error("[company-user] pending registration failed", pendingError);
+    return { ok: false, message: "We couldn't create that account. Make sure the latest database update is applied (npx supabase db push)." };
+  }
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password: randomBytes(32).toString("base64url"), // replaced when they set their own via the setup link
@@ -25,7 +31,7 @@ export async function createCompanyUser(email: string, displayName: string): Pro
       return { ok: false, message: "That email already has a TalentLoom account. Company accounts need their own email address." };
     }
     console.error("[company-user]", error);
-    return { ok: false, message: "We couldn't create that account. Please try again." };
+    return { ok: false, message: `We couldn't create that account (${error?.message ?? "unknown error"}).` };
   }
   return { ok: true, userId: data.user.id };
 }

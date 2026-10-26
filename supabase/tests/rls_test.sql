@@ -84,6 +84,17 @@ select pg_temp.ok((select count(*) = 1 from creator_privacy_settings s join crea
   '4. privacy settings row created automatically');
 select pg_temp.ok((select account_type = 'creator' from profiles where id = '00000000-0000-0000-0000-00000000000b'),
   '5. user-supplied account_type=super_admin in metadata is ignored');
+-- Supabase's admin API inserts the user first and sets app_metadata afterwards; the pending table covers that.
+select public.register_pending_company_account('New.Owner@Agency.example');
+insert into auth.users (id, email, raw_user_meta_data, raw_app_meta_data)
+values ('00000000-0000-0000-0000-000000000011', 'new.owner@agency.example', '{}', '{}');
+select pg_temp.ok((select account_type = 'company_member' from profiles where id = '00000000-0000-0000-0000-000000000011')
+                  and not exists (select 1 from private.pending_company_accounts),
+  '6a. server-registered company accounts are created even before app_metadata is set');
+select pg_temp.as_anon();
+select pg_temp.fails($$select public.register_pending_company_account('attacker@example.com')$$,
+  '6b. only the server can register company accounts');
+select pg_temp.as_postgres();
 select pg_temp.ok((select account_type = 'company_member' from profiles where id = '00000000-0000-0000-0000-00000000000c')
                   and not exists (select 1 from creator_profiles where user_id = '00000000-0000-0000-0000-00000000000c'),
   '6. server-created company member gets no creator profile');
