@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
-    "seed:fictional": "node scripts/seed-fictional-creators.mjs"
+    "seed:fictional": "node scripts/seed-fictional-creators.mjs",
+    "create-admin": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",

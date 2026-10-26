@@ -108,6 +108,7 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   if (profile?.status !== "active") {
     redirect("/account-suspended");
   }
+  await supabase.rpc("touch_last_active");
 
   const home = homeFor({
     accountType: profile.account_type,
@@ -161,5 +162,11 @@ export async function resetPasswordAction(_prev: FormState, formData: FormData):
     };
   }
 
+  // New company users arrive here from their setup link: take them straight in.
+  if (formData.get("welcome") === "1") {
+    const { data: profile } = await supabase
+      .from("profiles").select("account_type, onboarding_completed_at").eq("id", user.id).single();
+    redirect(profile ? homeFor({ accountType: profile.account_type, onboardingCompletedAt: profile.onboarding_completed_at }) : "/");
+  }
   redirect("/login?reset=1");
 }

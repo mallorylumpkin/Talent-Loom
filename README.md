@@ -24,8 +24,8 @@ src/
     (auth)/          Sign up (18+), sign in, forgot/reset password, check email
     auth/            Email-link confirmation and sign-out routes
     creator/         Creator dashboard, onboarding, profile, accounts, analytics, portfolio, media kit, privacy, settings
-    company/         Management-company dashboard (role-protected)
-    admin/           Super-admin console (role + MFA protected) and MFA setup
+    company/         Company workspace: dashboard, search, creator details, lists, compare, profile, team, settings
+    admin/           Super-admin console (role + MFA protected): leads, companies, review; MFA setup
   components/
     ui/              Buttons, fields, cards, badges, alerts, empty states
     layout/          Public header/footer, dashboard shell, navigation
@@ -37,8 +37,8 @@ src/
   proxy.ts           Refreshes the auth session on every request
 supabase/
   migrations/        Database schema, security policies, storage, reference data
-  tests/             Security test suite (85 checks)
-scripts/             Fictional sample-data script
+  tests/             Security test suite (93 checks)
+scripts/             create-admin and fictional sample-data scripts
 docs/                Setup, security model, build checklist
 ```
 

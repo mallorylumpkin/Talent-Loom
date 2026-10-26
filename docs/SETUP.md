@@ -134,20 +134,23 @@ To stop the app, press **Ctrl + C** in Terminal.
 
 ## Part 5 — Create your Super Admin account (one time)
 
-The admin role can never be chosen at sign-up. You create it manually:
+The admin role can never be chosen at sign-up. Create it with this command (it doesn't need email):
 
-1. On your running site, **sign up** with the email you want to use as the admin (use a different email from any creator test account) and **confirm the email**.
-2. In Supabase, open **SQL Editor** → **New query**, paste this (with your email), and click **Run**:
-   ```sql
-   select public.bootstrap_super_admin('you@yourdomain.com');
+1. In Terminal, in your project folder:
    ```
-   You'll see: *Super admin created for … Sign in and enrol MFA to open /admin.*
-3. Sign out of TalentLoom, sign back in with that email. You'll be sent to **Secure the admin console**.
-4. Scan the QR code with an authenticator app (1Password, Google Authenticator, Authy), enter the 6-digit code, and you're in the admin console.
+   $ npm run create-admin
+   ```
+2. Enter an email for the admin account. Use a **different** email from your creator test account — a "plus" address works,
+   e.g. `you+admin@yahoo.com`. Then choose a password (12+ characters; nothing shows while you type).
+3. Sign out of TalentLoom, then sign in with the admin email. You'll be asked to set up two-factor authentication: scan the
+   QR code with an authenticator app (1Password, Google Authenticator, Authy) and enter the 6-digit code.
 
-This function refuses to run a second time. Add more admins later from the admin dashboard (Phase 5).
+The command refuses to run once an admin exists. (Alternative: sign up normally, then run
+`select public.bootstrap_super_admin('you@yourdomain.com');` in the Supabase SQL Editor.)
 
----
+### Recommended: make setup links last longer
+Company accounts get a one-time "setup link" to choose their password. By default it expires after 1 hour. To give people
+a day: Supabase → **Authentication** → **Sign In / Providers** → **Email** → set **Email OTP Expiration** to `86400` → **Save**.
 
 ## Part 6 — Deploy to the internet with Vercel
 

@@ -4,6 +4,8 @@ export interface FormState {
   message?: string;
   errors?: Record<string, string>;
   values?: Record<string, string>;
+  /** Extra result data for the form to show (e.g. a generated setup link). */
+  data?: Record<string, string>;
 }
 
 export const initialFormState: FormState = {};

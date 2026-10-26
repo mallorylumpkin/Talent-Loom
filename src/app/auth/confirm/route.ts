@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
   if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      return NextResponse.redirect(new URL(type === "recovery" ? "/reset-password" : next, origin));
+      const dest = type === "recovery" ? (next.startsWith("/reset-password") ? next : "/reset-password") : next;
+      return NextResponse.redirect(new URL(dest, origin));
     }
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);

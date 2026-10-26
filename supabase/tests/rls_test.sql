@@ -214,6 +214,43 @@ update creator_privacy_settings set bio = 'private'
 select pg_temp.as_anon();
 select pg_temp.ok((select public.get_public_creator_profile('ava.fictional') ->> 'bio') is null,
   'P2-7. fields set to private disappear from the public profile');
+
+-- Phase 3: company search respects approval, plan and creator privacy
+select pg_temp.login('00000000-0000-0000-0000-00000000000d');   -- recruiter, approved company on Agency plan
+select pg_temp.ok((select (r ->> 'total') = '1' and (r ->> 'view_level') = '2'
+                          and (r -> 'items' -> 0 ->> 'engagement_rate') = '5.800'
+                   from (select public.search_creators('10000000-0000-0000-0000-000000000001') r) x),
+  'P3-1. approved Agency company sees creators and permissioned analytics');
+select pg_temp.ok((select (public.search_creators('10000000-0000-0000-0000-000000000001',
+                     '{"engagement_min": "5"}'::jsonb) ->> 'total') = '1'),
+  'P3-2. advanced filters work on plans that include them');
+select pg_temp.fails($$select public.search_creators('10000000-0000-0000-0000-000000000002')$$,
+  'P3-3. a company cannot search as another company');
+select pg_temp.ok((select (j ->> 'view_level') = '2' and (j ->> 'handle') = 'ava.fictional'
+                   from (select public.get_creator_for_company('10000000-0000-0000-0000-000000000001',
+                           (public.search_creators('10000000-0000-0000-0000-000000000001') -> 'items' -> 0 ->> 'id')::uuid) j) x),
+  'P3-4. approved company can open a creator profile');
+
+select pg_temp.login('00000000-0000-0000-0000-00000000000e');   -- owner of a company still under review, no plan
+select pg_temp.ok((select (r ->> 'view_level') = '0'
+                          and (r -> 'items' -> 0 ->> 'followers') = '84200'
+                          and (r -> 'items' -> 0 ->> 'engagement_rate') is null
+                   from (select public.search_creators('10000000-0000-0000-0000-000000000002') r) x),
+  'P3-5. unapproved company sees public fields only');
+select pg_temp.fails($$select public.submit_company_for_review('10000000-0000-0000-0000-000000000002')$$,
+  'P3-6. a company already under review cannot resubmit');
+
+select pg_temp.login('00000000-0000-0000-0000-00000000000a');
+select pg_temp.fails($$select public.search_creators('10000000-0000-0000-0000-000000000001')$$,
+  'P3-7. creators cannot use company search');
+update creator_privacy_settings set engagement = 'private';
+select pg_temp.login('00000000-0000-0000-0000-00000000000d');
+select pg_temp.ok((select (public.search_creators('10000000-0000-0000-0000-000000000001',
+                     '{"engagement_min": "1"}'::jsonb) ->> 'total') = '0'),
+  'P3-8. filtering on a hidden field never matches (no leaking through filters)');
+select pg_temp.login('00000000-0000-0000-0000-00000000000a');
+update creator_privacy_settings set engagement = 'approved_companies';
+select pg_temp.as_anon();
 select pg_temp.login('00000000-0000-0000-0000-00000000000a');
 
 -- ---------------------------------------------------------------------

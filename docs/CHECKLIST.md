@@ -38,17 +38,31 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Fictional sample creators script (`npm run seed:fictional`, remove with `-- --remove`)
 - ✅ Security test suite extended — 85 checks passing
 
-## Phase 3 — Companies & search 🔜
-- ⬜ Admin: sales leads → create company → assign plan → invite owner
-- ⬜ Team invites and roles; company profile and application
-- ⬜ Creator search with all filters, privacy masking, search index
-- ⬜ Creator details, saved lists, comparison
+## Phase 3 — Companies & search ✅
+- ✅ `npm run create-admin` creates the first super admin without email delivery
+- ✅ Admin: sales leads inbox with status and notes; "Create company from lead"
+- ✅ Admin: create company + assign plan (complimentary until Phase 6) + create owner account + one-time setup link
+- ✅ Admin: company review (approve, request info, reject, suspend, reactivate) with history and member notifications
+- ✅ Admin: change plan, verified badge, freeze outreach, featured; add members; issue setup links (audit-logged)
+- ✅ Company: dashboard with setup checklist and plan limits
+- ✅ Company: profile, logo, categories represented, specialties, submit for review
+- ✅ Company: team invites with one-time setup links, roles, removal; seat limits; owner-only rules
+- ✅ Creator search: keyword, niche, platform, location, followers, seeking, representation, sort; advanced filters
+  (engagement, growth, content type, audience, recently active, verified only) on Agency plans
+- ✅ Privacy-respecting results: unapproved companies see public fields; approved see "approved companies" fields;
+  detailed analytics need the permissioned-analytics plan feature; filters never match hidden values
+- ✅ Creator detail page for companies (views counted once per company per day; media kit when allowed)
+- ✅ Saved talent: one-click save, lists, private lists (Agency Pro), plan limits
+- ✅ Side-by-side comparison of 2–4 creators (Agency plans)
+- ✅ Company settings: plan features and password change
+- ✅ Security suite extended — 93 checks passing
 
-## Phase 4 — Relationships
+## Phase 4 — Relationships 🔜
 - ⬜ Representation inquiries (atomic, plan-limited, rate-limited)
 - ⬜ Messaging with realtime, unread counts, archive, block, report
 - ⬜ Recruiting pipeline board, notes, assignments, signed-talent roster
 - ⬜ In-app notifications
+- ⬜ Public company profile pages (shown to creators with inquiries)
 
 ## Phase 5 — Admin console
 - ⬜ Users, creators, companies (full lifecycle), verification queue, reports

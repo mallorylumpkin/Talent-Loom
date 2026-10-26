@@ -55,8 +55,8 @@ export const companyNav: NavSection[] = [
   {
     items: [
       { label: "Dashboard", href: "/company", icon: "LayoutDashboard" },
-      { label: "Creator search", href: "/company/search", icon: "Search", phase: 3 },
-      { label: "Saved talent", href: "/company/lists", icon: "Bookmark", phase: 3 },
+      { label: "Creator search", href: "/company/search", icon: "Search" },
+      { label: "Saved talent", href: "/company/lists", icon: "Bookmark" },
       { label: "Pipeline", href: "/company/pipeline", icon: "Columns3", phase: 4 },
       { label: "Inquiries", href: "/company/inquiries", icon: "Send", phase: 4 },
       { label: "Messages", href: "/company/messages", icon: "MessageCircle", phase: 4 },
@@ -66,11 +66,11 @@ export const companyNav: NavSection[] = [
   {
     title: "Company",
     items: [
-      { label: "Company profile", href: "/company/profile", icon: "Building2", phase: 3 },
-      { label: "Team", href: "/company/team", icon: "UsersRound", phase: 3 },
+      { label: "Company profile", href: "/company/profile", icon: "Building2" },
+      { label: "Team", href: "/company/team", icon: "UsersRound" },
       { label: "Reports", href: "/company/reports", icon: "ChartNoAxesColumn", phase: 7 },
       { label: "Plan & billing", href: "/company/billing", icon: "CreditCard", phase: 6 },
-      { label: "Settings", href: "/company/settings", icon: "Settings", phase: 3 },
+      { label: "Settings", href: "/company/settings", icon: "Settings" },
       { label: "Support", href: "/company/support", icon: "LifeBuoy", phase: 5 },
     ],
   },
@@ -85,8 +85,8 @@ export const adminNav: NavSection[] = [
     items: [
       { label: "Users", href: "/admin/users", icon: "Users", phase: 5 },
       { label: "Creators", href: "/admin/creators", icon: "Sparkles", phase: 5 },
-      { label: "Companies", href: "/admin/companies", icon: "Building2", phase: 3 },
-      { label: "Sales leads", href: "/admin/leads", icon: "Inbox", phase: 3 },
+      { label: "Companies", href: "/admin/companies", icon: "Building2" },
+      { label: "Sales leads", href: "/admin/leads", icon: "Inbox" },
     ],
   },
   {

@@ -5,6 +5,7 @@ export const uploadRules = {
   "portfolio-private": { maxMb: 20, types: ["image/jpeg", "image/png", "image/webp", "application/pdf"] },
   "media-kits": { maxMb: 20, types: ["application/pdf", "image/jpeg", "image/png"] },
   "analytics-evidence": { maxMb: 10, types: ["image/jpeg", "image/png", "image/webp", "application/pdf"] },
+  "company-logos": { maxMb: 5, types: ["image/jpeg", "image/png", "image/webp"] },
 } as const;
 
 export type UploadBucket = keyof typeof uploadRules;
@@ -16,7 +17,7 @@ export interface UploadedFile {
   sizeBytes: number;
 }
 
-/** Reads the hidden fields the upload form adds, and checks they're safe for this user and bucket. */
+/** Reads the hidden fields the upload form adds, and checks they're safe for this owner folder and bucket. */
 export function readUpload(fd: FormData, bucket: UploadBucket, userId: string): UploadedFile | null {
   const storagePath = fd.get("storagePath");
   const fileName = fd.get("fileName");
