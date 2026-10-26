@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { normalizeSupabaseUrl } from "@/lib/env";
 
 const PROTECTED_PREFIXES = ["/creator", "/company", "/admin"];
 
@@ -17,7 +18,7 @@ export async function updateSession(request: NextRequest) {
     return response; // Not configured yet — let pages show the setup error.
   }
 
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(normalizeSupabaseUrl(url), key, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

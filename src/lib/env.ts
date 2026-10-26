@@ -12,9 +12,21 @@ function required(name: string, value: string | undefined): string {
   return value;
 }
 
+/**
+ * Keeps only https://<project>.supabase.co even if extra path text such as
+ * /rest/v1/ was pasted, which would otherwise break every auth request.
+ */
+export function normalizeSupabaseUrl(value: string): string {
+  try {
+    return new URL(value.trim()).origin;
+  } catch {
+    return value.trim().replace(/\/+$/, "");
+  }
+}
+
 export const publicEnv = {
   siteUrl: () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3002").replace(/\/$/, ""),
-  supabaseUrl: () => required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL),
+  supabaseUrl: () => normalizeSupabaseUrl(required("NEXT_PUBLIC_SUPABASE_URL", process.env.NEXT_PUBLIC_SUPABASE_URL)),
   supabaseKey: () =>
     required(
       "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
