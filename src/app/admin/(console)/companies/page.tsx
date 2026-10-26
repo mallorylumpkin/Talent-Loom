@@ -37,7 +37,7 @@ export default async function CompaniesPage({ searchParams }: { searchParams: Pr
     supabase.from("subscriptions").select("owner_id, plans(name)").eq("owner_type", "company")
       .in("status", ["active", "trialing", "complimentary", "past_due"]),
   ]);
-  const planBy = new Map((subs ?? []).map((s: { owner_id: string; plans: { name: string } | null }) => [s.owner_id, s.plans?.name]));
+  const planBy = new Map(((subs ?? []) as unknown as { owner_id: string; plans: { name: string } | null }[]).map((s) => [s.owner_id, s.plans?.name]));
 
   return (
     <>

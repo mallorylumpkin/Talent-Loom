@@ -62,7 +62,7 @@ export default async function UserPage({ params }: { params: Promise<{ id: strin
                   <Link href={`/admin/creators/${creator.id}`} className="font-medium text-primary hover:underline">Open creator</Link>
                 </p>
               )}
-              {(memberships ?? []).map((m: { status: string; companies: { id: string; name: string } | null; company_roles: { name: string } | null }) => m.companies && (
+              {((memberships ?? []) as unknown as { status: string; companies: { id: string; name: string } | null; company_roles: { name: string } | null }[]).map((m) => m.companies && (
                 <p key={m.companies.id} className="mt-2 text-sm">
                   {m.company_roles?.name} at <Link href={`/admin/companies/${m.companies.id}`} className="font-medium text-primary hover:underline">{m.companies.name}</Link>
                   {m.status !== "active" && <span className="text-muted"> ({m.status})</span>}

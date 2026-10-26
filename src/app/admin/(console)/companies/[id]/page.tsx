@@ -47,7 +47,7 @@ export default async function AdminCompanyPage({ params }: { params: Promise<{ i
   }[];
   const signIns = await lastSignIns(memberRows.map((m) => m.user_id));
   const status = COMPANY_STATUS_LABELS[company.status];
-  const plan = sub?.plans as { key: string; name: string } | null;
+  const plan = (sub?.plans ?? null) as unknown as { key: string; name: string } | null;
   const logo = publicStorageUrl("company-logos", company.logo_path);
 
   return (
@@ -83,7 +83,7 @@ export default async function AdminCompanyPage({ params }: { params: Promise<{ i
                 <div><p className="font-medium text-ink">Services</p><p className="whitespace-pre-line text-ink/85">{company.services_description}</p></div>
               )}
               <div className="flex flex-wrap gap-1.5">
-                {(cats ?? []).map((c: { content_categories: { label: string } | null }, i: number) =>
+                {((cats ?? []) as unknown as { content_categories: { label: string } | null }[]).map((c, i) =>
                   c.content_categories && <Badge key={i}>{c.content_categories.label}</Badge>)}
                 {(company.specialties ?? []).map((s: string) => <Badge key={s} tone="primary">{s}</Badge>)}
               </div>
