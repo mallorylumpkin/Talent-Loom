@@ -734,7 +734,15 @@ select pg_temp.ok(public.get_company_profile('x-agency') ->> 'name' = 'X Agency 
   'R42. signed-in creators can view an approved company''s profile');
 select pg_temp.ok(public.get_company_profile('y-agency') is null, 'R43. unapproved companies have no profile');
 select pg_temp.as_anon();
-select pg_temp.fails($$select public.get_company_profile('x-agency')$$, 'R44. visitors cannot view company profiles');
+select pg_temp.ok(public.get_company_profile('x-agency') is null and jsonb_array_length(public.list_companies()) = 0,
+  'R44. visitors cannot view company profiles while the directory is off');
+select pg_temp.as_postgres();
+update platform_settings set value = 'true' where key = 'features.company_directory';
+select pg_temp.as_anon();
+select pg_temp.ok(public.get_company_profile('x-agency') is not null and public.get_company_profile('y-agency') is null,
+  'R45. with the directory on, approved companies are public (unapproved never)');
+select pg_temp.as_postgres();
+update platform_settings set value = 'false' where key = 'features.company_directory';
 
 -- ---------------------------------------------------------------------
 -- Phase 5: admin console, impersonation, templates, support
@@ -865,6 +873,58 @@ select pg_temp.ok((select status = 'pending' from support_requests), 'A23. an ad
 select pg_temp.ok((select count(*) = 1 from notifications where type = 'support.reply'), 'A24. the user is notified of the reply');
 select pg_temp.login('00000000-0000-0000-0000-000000000031');
 select pg_temp.ok((select count(*) = 0 from support_requests), 'A25. users only see their own support requests');
+
+-- ---------------------------------------------------------------------
+-- Phase 6/7: billing records, credits, insights, reports
+-- ---------------------------------------------------------------------
+select pg_temp.as_postgres();
+update plan_prices set stripe_price_id = 'price_test_creator_pro_month'
+where plan_id = (select id from plans where key = 'creator_pro') and billing_interval = 'month';
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.fails($$select public.billing_upsert_subscription('user', auth.uid(), 'sub_x', 'price_test_creator_pro_month',
+  'active', now(), now() + interval '1 month', false, null, null)$$, 'B1. users cannot write subscriptions');
+select pg_temp.ok((public.my_profile_insights() ->> 'locked')::boolean, 'B2. profile insights are a Creator Pro feature');
+select pg_temp.as_postgres();
+set role service_role;
+select public.billing_upsert_subscription('user', '00000000-0000-0000-0000-000000000031', 'sub_test_1', 'price_test_creator_pro_month',
+  'active', now(), now() + interval '1 month', false, null, null);
+select pg_temp.fails($$select public.billing_upsert_subscription('company', '10000000-0000-0000-0000-000000000009', 'sub_test_2',
+  'price_test_creator_pro_month', 'active', now(), now() + interval '1 month', false, null, null)$$,
+  'B3. a creator plan cannot be attached to a company');
+select public.billing_record_invoice('user', '00000000-0000-0000-0000-000000000031', 'in_test_1', 'Creator Pro', 999, 'usd', 'failed', null, null, null);
+reset role;
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.ok((select count(*) = 1 from my_entitlements() where feature_key = 'affiliate_vault' and enabled),
+  'B4. a paid subscription unlocks Creator Pro features');
+select pg_temp.ok(not (public.my_profile_insights() ->> 'locked')::boolean, 'B5. and profile insights');
+select pg_temp.ok((select count(*) = 1 from payments where status = 'failed')
+                  and (select count(*) = 1 from notifications where type = 'payment.failed'),
+  'B6. failed payments are recorded and the user is warned');
+select pg_temp.ok(pg_temp.affected($$insert into affiliate_codes (creator_id, brand_name, code) values (private.my_creator_id(), 'Fictional Brand', 'PIA10')$$) = 1,
+  'B7. Creator Pro members can use the Affiliate Code Vault');
+select pg_temp.as_postgres();
+set role service_role;
+select public.billing_upsert_subscription('user', '00000000-0000-0000-0000-000000000031', 'sub_test_1', 'price_test_creator_pro_month',
+  'canceled', null, null, false, now(), null);
+reset role;
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.fails($$insert into affiliate_codes (creator_id, brand_name, code) values (private.my_creator_id(), 'Another Brand', 'X')$$,
+  'B8. after cancelling, new Pro records are blocked');
+select pg_temp.ok((select count(*) = 1 from affiliate_codes), 'B9. but existing records stay readable');
+
+-- Contact credits extend the monthly allowance
+select pg_temp.as_postgres();
+insert into entitlement_overrides (owner_type, owner_id, feature_key, enabled, limit_value)
+values ('company', '10000000-0000-0000-0000-000000000009', 'contacts.monthly', true, 0);
+insert into contact_credit_ledger (company_id, delta, reason, source) values ('10000000-0000-0000-0000-000000000009', 1, 'Test grant', 'admin');
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.ok(public.send_inquiry('10000000-0000-0000-0000-000000000009', (select id from tess), 'Hello Tess',
+  'A message long enough to pass the length check.') is not null, 'B10. a contact credit is used when the monthly allowance is spent');
+select pg_temp.ok(public.company_credit_balance('10000000-0000-0000-0000-000000000009') = 0, 'B11. the credit is consumed');
+select pg_temp.login('00000000-0000-0000-0000-00000000000f', 'aal2');
+select pg_temp.ok((public.admin_revenue_summary() ->> 'canceled_30d')::int = 1, 'B12. admins see revenue and churn');
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.fails($$select public.admin_revenue_summary()$$, 'B13. revenue metrics are admin-only');
 
 select pg_temp.as_postgres();
 \echo

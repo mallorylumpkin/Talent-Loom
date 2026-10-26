@@ -17,14 +17,15 @@ interface CompanyProfile {
   approved_at: string | null; categories: string[]; roster_size: number;
 }
 
-/** Approved companies' profiles — visible to signed-in TalentLoom members so creators can vet who's contacting them. */
+/** Approved companies' profiles — visible to signed-in members (and to everyone when the public directory is on). */
 export default async function CompanyProfilePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const viewer = await getViewer();
-  if (!viewer) redirect(`/login?next=${encodeURIComponent(`/companies/${slug}`)}`);
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_company_profile", { p_slug: slug });
   const c = data as CompanyProfile | null;
+  // Signed-in members can always see approved companies; visitors only when the public directory is on.
+  if (!c && !viewer) redirect(`/login?next=${encodeURIComponent(`/companies/${slug}`)}`);
   if (!c) notFound();
   const location = [c.city, c.region, countryName(c.country)].filter(Boolean).join(", ");
 

@@ -52,3 +52,9 @@ A clean run ends with `ALL SECURITY TESTS PASSED`. **Never run the test suite ag
 - TalentLoom creates a one-time sign-in for the user on the server (no email, no password). The admin's own session is kept in an AES-256-GCM encrypted, httpOnly cookie and restored on Exit.
 - That browser session is **read-only in the database**: its Supabase session id is recorded, and every write policy and function refuses it (`private.is_impersonated_session()`), including read/unread markers. The proxy also blocks form actions, account connections, password resets and data exports while it's active.
 - The banner is always visible; the window is 30 minutes, after which the admin is sent back. Start, end, admin, user and reason are in the audit log. Exiting closes only that browser session — the user's own devices stay signed in.
+
+## Billing
+- Card details never touch TalentLoom — Stripe Checkout and the Stripe portal handle them.
+- The webhook rejects requests without a valid Stripe signature (5-minute tolerance) and stores each event once, so retries can't double-apply.
+- Subscriptions and invoices can only be written by server-only database functions; a creator plan can't be attached to a company (or vice versa).
+- Admin billing actions (credits, cancellations, trial changes, payment links, Stripe sync) are audit-logged.

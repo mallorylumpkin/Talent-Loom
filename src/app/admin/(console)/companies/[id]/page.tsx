@@ -8,6 +8,7 @@ import {
   AddMemberForm, CompanyFlagsForm, PlanForm, ReviewCompanyForm, SetupLinkButton,
 } from "@/components/admin/company-forms";
 import { COMPANY_STATUS_LABELS, getAdminContext } from "@/lib/admin/context";
+import { CompanyCheckoutForm, ContactCreditsForm } from "@/components/admin/billing-forms";
 import { lastSignIns } from "@/lib/auth/company-users";
 import { countryName } from "@/lib/countries";
 import { shortDate } from "@/lib/format";
@@ -19,6 +20,13 @@ export default async function AdminCompanyPage({ params }: { params: Promise<{ i
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { supabase } = await getAdminContext();
+  const [{ data: credits }, { data: pricesData }] = await Promise.all([
+    supabase.rpc("company_credit_balance", { p_company_id: id }),
+    supabase.from("plan_prices").select("id, billing_interval, amount_cents, stripe_price_id, plans!inner(name, audience)")
+      .eq("plans.audience", "company").eq("active", true).not("stripe_price_id", "is", null),
+  ]);
+  const companyPrices = ((pricesData ?? []) as unknown as { id: string; billing_interval: string; amount_cents: number; plans: { name: string } }[])
+    .map((p) => ({ id: p.id, label: `${p.plans.name} — $${(p.amount_cents / 100).toLocaleString()}/${p.billing_interval}` }));
 
   const [{ data: company }, { data: members }, { data: apps }, { data: sub }, { data: plans }, { data: cats }] = await Promise.all([
     supabase.from("companies").select("*").eq("id", id).maybeSingle(),
@@ -111,8 +119,15 @@ export default async function AdminCompanyPage({ params }: { params: Promise<{ i
 
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Plan" description={sub?.comp_expires_at ? `Complimentary until ${shortDate(sub.comp_expires_at)}` : "Complimentary (billing arrives in Phase 6)"} />
+            <CardHeader title="Plan" description={sub?.comp_expires_at ? `Complimentary until ${shortDate(sub.comp_expires_at)}` : "Assign a complimentary plan here, or send a payment link below"} />
             <CardBody><PlanForm companyId={company.id} plans={plans ?? []} currentKey={plan?.key} /></CardBody>
+          </Card>
+          <Card>
+            <CardHeader title="Billing" description={`Contact credits available: ${credits ?? 0}`} />
+            <CardBody className="space-y-5">
+              <CompanyCheckoutForm companyId={id} prices={companyPrices} />
+              <ContactCreditsForm companyId={id} />
+            </CardBody>
           </Card>
           <Card>
             <CardHeader title="Trust and visibility" />

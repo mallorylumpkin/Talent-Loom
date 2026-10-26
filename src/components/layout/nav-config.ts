@@ -37,14 +37,15 @@ export const creatorNav: NavSection[] = [
   {
     title: "Pro tools",
     items: [
-      { label: "Affiliate Code Vault", href: "/creator/affiliate-vault", icon: "Ticket", phase: 7 },
-      { label: "Brand-Deal Tracker", href: "/creator/brand-deals", icon: "Handshake", phase: 7 },
+      { label: "Profile insights", href: "/creator/insights", icon: "ChartNoAxesColumn" },
+      { label: "Affiliate Code Vault", href: "/creator/affiliate-vault", icon: "Ticket" },
+      { label: "Brand-Deal Tracker", href: "/creator/brand-deals", icon: "Handshake" },
     ],
   },
   {
     title: "Account",
     items: [
-      { label: "Billing", href: "/creator/billing", icon: "CreditCard", phase: 6 },
+      { label: "Billing", href: "/creator/billing", icon: "CreditCard" },
       { label: "Settings", href: "/creator/settings", icon: "Settings" },
       { label: "Support", href: "/creator/support", icon: "LifeBuoy" },
     ],
@@ -69,8 +70,8 @@ export const companyNav: NavSection[] = [
     items: [
       { label: "Company profile", href: "/company/profile", icon: "Building2" },
       { label: "Team", href: "/company/team", icon: "UsersRound" },
-      { label: "Reports", href: "/company/reports", icon: "ChartNoAxesColumn", phase: 7 },
-      { label: "Plan & billing", href: "/company/billing", icon: "CreditCard", phase: 6 },
+      { label: "Reports", href: "/company/reports", icon: "ChartNoAxesColumn" },
+      { label: "Plan & billing", href: "/company/billing", icon: "CreditCard" },
       { label: "Settings", href: "/company/settings", icon: "Settings" },
       { label: "Support", href: "/company/support", icon: "LifeBuoy" },
     ],
@@ -102,9 +103,9 @@ export const adminNav: NavSection[] = [
   {
     title: "Business",
     items: [
-      { label: "Subscriptions", href: "/admin/subscriptions", icon: "CreditCard", phase: 6 },
-      { label: "Plans & pricing", href: "/admin/plans", icon: "Tags", phase: 6 },
-      { label: "Promo codes", href: "/admin/promo-codes", icon: "Percent", phase: 6 },
+      { label: "Subscriptions", href: "/admin/subscriptions", icon: "CreditCard" },
+      { label: "Plans & pricing", href: "/admin/plans", icon: "Tags" },
+      { label: "Promo codes", href: "/admin/promo-codes", icon: "Percent" },
     ],
   },
   {

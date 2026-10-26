@@ -114,14 +114,24 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Security suite extended — 185 checks passing
 - ⬜ Billing-related admin pages (subscriptions, payments, plans & pricing, promo codes, credits) → Phase 6
 
-## Phase 6 — Billing
-- ⬜ Stripe products sync, Checkout and Customer Portal (Creator Pro)
-- ⬜ Admin-assigned company subscriptions (invoice billing) and complimentary plans
-- ⬜ Webhooks, usage meters, promo codes, trials, credits, MRR/churn
-- ⬜ Optional add-ons behind feature flags
+## Phase 6 — Billing ✅ (Stripe test mode until you add live keys)
+- ✅ Stripe REST integration (no SDK), pinned API version, signed + idempotent webhook (every event stored once)
+- ✅ Creator Pro self-serve checkout (monthly/yearly, free trial once, promo codes), Stripe customer portal
+- ✅ Company plans sales-led: admin payment links, complimentary plans; company Plan & billing page with usage meters
+- ✅ Subscriptions, invoices, failed-payment and trial-ending notifications; past-due grace period from settings
+- ✅ Admin: MRR, 30-day revenue, churn, plan mix; grant complimentary; extend trials; account credits; cancel;
+  payments list; plans & prices editor with Sync to Stripe; full feature/limit matrix; promo codes
+- ✅ Contact credits extend a company's monthly contact allowance (used automatically)
+- ⬜ Your Stripe account, keys and webhook — see docs/BILLING.md
 
-## Phase 7 — Pro tools & polish
-- ⬜ Affiliate Code Vault, Brand-Deal Tracker, creator insights
-- ⬜ Remaining public pages (How it works, For creators, About, Contact, FAQ, Report a user)
-- ⬜ Custom media-kit page and advanced insights (Creator Pro)
-- ⬜ Accessibility pass, full seed data, testing (social-API setup guide ✅ in docs/SOCIAL-CONNECTIONS.md)
+## Phase 7 — Pro tools & polish ✅
+- ✅ Affiliate Code Vault (search, expiry warnings, payout status) — Creator Pro
+- ✅ Brand-Deal Tracker (stages, amounts, deliverables, approvals, invoices, totals) — Creator Pro
+- ✅ Profile insights: which approved companies viewed or saved you — Creator Pro (counts for everyone)
+- ✅ Company reports: inquiries by month, acceptance rate, pipeline, team outreach — Agency plans
+- ✅ Company CSV exports (pipeline, roster, inquiries, saved creators) — Agency plans + export permission
+- ✅ Public company directory (switch in Admin → Settings)
+- ✅ Launch guide: docs/LAUNCH.md
+- ✅ Security suite — 199 checks passing
+- ⬜ Not built (left switched off): paid add-ons/boosts, success fees, monthly insight emails, custom media-kit page builder,
+  API access / SSO (plan "readiness" flags only)

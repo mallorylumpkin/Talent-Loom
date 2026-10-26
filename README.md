@@ -6,7 +6,7 @@ TalentLoom connects growing social media creators with vetted management compani
 
 ## Getting started
 
-👉 **[docs/SETUP.md](docs/SETUP.md)** — step-by-step setup: Supabase, local development, first super admin, and deployment to Vercel.
+👉 **[docs/SETUP.md](docs/SETUP.md)** — local setup. **[docs/LAUNCH.md](docs/LAUNCH.md)** — going live (Vercel, email, payments). **[docs/BILLING.md](docs/BILLING.md)** — Stripe. **[docs/SOCIAL-CONNECTIONS.md](docs/SOCIAL-CONNECTIONS.md)** — connected accounts.
 
 ```bash
 npm install
@@ -39,7 +39,7 @@ src/
   proxy.ts           Refreshes the auth session on every request
 supabase/
   migrations/        Database schema, security policies, storage, reference data
-  tests/             Security test suite (185 checks)
+  tests/             Security test suite (199 checks)
 scripts/             create-admin and fictional sample-data scripts
 docs/                Setup, social connections, security model, build checklist
 ```
