@@ -48,13 +48,27 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
   });
 
   if (error) {
+    // Full details go to the server log (your Terminal locally, Vercel logs in production).
+    console.error("[signup] Supabase error", { code: error.code, status: error.status, message: error.message });
+
     if (error.code === "weak_password") {
-      return { errors: { password: "Choose a stronger password." }, values };
+      return { errors: { password: error.message || "Choose a stronger password." }, values };
     }
-    if (error.status === 429) {
-      return { message: "Too many attempts. Please wait a minute and try again.", values };
+    if (error.code === "email_address_invalid") {
+      return { errors: { email: "That email address can't be used. Try a different one." }, values };
     }
-    return { message: "We couldn't create your account. Please try again.", values };
+    if (error.code === "email_address_not_authorized") {
+      return {
+        message:
+          "Email sending isn't set up yet. Until a custom email provider is connected in Supabase, sign-up only works for email addresses on your Supabase team.",
+        values,
+      };
+    }
+    if (error.status === 429 || error.code === "over_email_send_rate_limit") {
+      return { message: "Too many sign-up emails were sent recently. Please wait a while and try again.", values };
+    }
+    const detail = process.env.NODE_ENV !== "production" ? ` (${error.code ?? error.status}: ${error.message})` : "";
+    return { message: `We couldn't create your account. Please try again.${detail}`, values };
   }
 
   // Same response whether or not the email already exists (prevents account discovery).
