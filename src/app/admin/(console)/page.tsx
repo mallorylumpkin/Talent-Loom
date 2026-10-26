@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader, StatTile } from "@/components/ui/card";
@@ -31,10 +32,12 @@ export default async function AdminOverview() {
       supabase.from("audit_logs").select("id, action, actor_email, target_type, created_at")
         .order("created_at", { ascending: false }).limit(8),
     ]);
+  const { data: summary } = await supabase.rpc("admin_activity_summary");
+  const a = (summary ?? {}) as Record<string, number>;
 
   return (
     <>
-      <PageHeader title="Platform overview" description="Live counts from the database. Admin tools arrive phase by phase." />
+      <PageHeader title="Platform overview" description="Live counts from the database." />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Users" value={users} />
@@ -43,9 +46,20 @@ export default async function AdminOverview() {
         <StatTile label="New sales leads" value={newLeads} />
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <StatTile label="Open reports" value={openReports} />
-        <StatTile label="Pending verifications" value={pendingVerification} />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href="/admin/reports"><StatTile label="Open reports" value={openReports} /></Link>
+        <Link href="/admin/verification"><StatTile label="Pending verifications" value={pendingVerification} /></Link>
+        <Link href="/admin/support"><StatTile label="Open support requests" value={a.open_support ?? 0} /></Link>
+        <StatTile label="Connected social accounts" value={a.connected_accounts ?? 0} />
+      </div>
+
+      <h2 className="mt-8 mb-3 text-sm font-semibold tracking-wide text-muted uppercase">Last 7 days</h2>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <StatTile label="Sign-ups" value={a.signups_7d ?? 0} />
+        <StatTile label="Inquiries sent" value={a.inquiries_7d ?? 0} />
+        <StatTile label="Inquiries accepted" value={a.accepted_7d ?? 0} />
+        <StatTile label="Messages" value={a.messages_7d ?? 0} />
+        <Link href="/admin/activity"><StatTile label="Blocks" value={a.blocks_7d ?? 0} /></Link>
       </div>
 
       <Card className="mt-8">

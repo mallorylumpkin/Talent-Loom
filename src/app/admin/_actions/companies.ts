@@ -56,13 +56,13 @@ async function assignPlan(supabase: Client, companyId: string, planKey: string, 
   return error ? { message: dbErrorMessage(error) } : null;
 }
 
-async function notifyMembers(supabase: Client, companyId: string, type: string, title: string, body?: string) {
+async function notifyMembers(supabase: Client, companyId: string, type: string, title: string, _body?: string) {
   const { data: members } = await supabase
     .from("company_members").select("user_id").eq("company_id", companyId).eq("status", "active");
-  if (!members?.length) return;
-  await supabase.from("notifications").insert(
-    members.map((m: { user_id: string }) => ({ user_id: m.user_id, type, title, body: body ?? null, link: "/company" })),
-  );
+  // Goes through the editable notification templates (Admin → Settings).
+  for (const m of (members ?? []) as { user_id: string }[]) {
+    await supabase.rpc("admin_notify", { p_user_id: m.user_id, p_type: type, p_fallback_title: title, p_link: "/company", p_vars: {} });
+  }
 }
 
 // ---------------------------------------------------------------------------

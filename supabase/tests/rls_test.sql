@@ -736,6 +736,136 @@ select pg_temp.ok(public.get_company_profile('y-agency') is null, 'R43. unapprov
 select pg_temp.as_anon();
 select pg_temp.fails($$select public.get_company_profile('x-agency')$$, 'R44. visitors cannot view company profiles');
 
+-- ---------------------------------------------------------------------
+-- Phase 5: admin console, impersonation, templates, support
+-- ---------------------------------------------------------------------
+create or replace function pg_temp.login_session(p_uid uuid, p_session uuid) returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', p_uid, 'role', 'authenticated', 'aal', 'aal1', 'session_id', p_session)::text, false);
+  execute 'set role authenticated';
+end $$;
+grant execute on all functions in schema pg_temp to anon, authenticated;
+
+select pg_temp.as_postgres();
+insert into impersonation_sessions (admin_id, target_user_id, reason, auth_session_id)
+values ('00000000-0000-0000-0000-00000000000f', '00000000-0000-0000-0000-000000000031', 'Support ticket check', 'aaaaaaaa-0000-0000-0000-000000000001');
+
+select pg_temp.login_session('00000000-0000-0000-0000-000000000031', 'aaaaaaaa-0000-0000-0000-000000000001');
+select pg_temp.ok((select count(*) = 1 from creator_profiles) and jsonb_array_length(public.my_inbox()) = 1,
+  'A1. an impersonation session can read what the user sees');
+select pg_temp.ok(pg_temp.affected($$update creator_profiles set bio = 'changed by admin'$$) = 0,
+  'A2. an impersonation session cannot edit the profile');
+select pg_temp.fails($$insert into messages (conversation_id, sender_user_id, body) select id, auth.uid(), 'hi' from conversations$$,
+  'A3. an impersonation session cannot send messages');
+select public.mark_conversation_read((select id from conversations));
+select pg_temp.ok(pg_temp.affected($$update notifications set read_at = now() where read_at is null$$) = 0,
+  'A3b. viewing as a user does not change their read/unread state');
+select pg_temp.login_session('00000000-0000-0000-0000-000000000034', 'aaaaaaaa-0000-0000-0000-000000000009');
+select pg_temp.login_session('00000000-0000-0000-0000-000000000031', 'bbbbbbbb-0000-0000-0000-000000000002');
+select pg_temp.ok(pg_temp.affected($$update creator_profiles set bio = 'Fictional bio, edited by Pia'$$) = 1,
+  'A4. the user''s own sessions keep working normally');
+select pg_temp.fails($$select public.record_impersonation_start('00000000-0000-0000-0000-00000000000f',
+  '00000000-0000-0000-0000-000000000031', 'trying', gen_random_uuid())$$, 'A5. users cannot start impersonation');
+select pg_temp.as_postgres();
+set role service_role;
+select pg_temp.fails($$select public.record_impersonation_start('00000000-0000-0000-0000-00000000000f',
+  '00000000-0000-0000-0000-00000000000f', 'looking around', gen_random_uuid())$$, 'A6. admins cannot be impersonated');
+reset role;
+
+-- Templates drive notification text, and can be switched off
+select pg_temp.ok((select title = 'X Agency (fictional) sent you a representation inquiry.' from notifications
+                   where user_id = '00000000-0000-0000-0000-000000000031' and type = 'inquiry.new'),
+  'A7. notification text comes from the editable template');
+update notification_templates set enabled = false where key = 'message.new';
+update notifications set read_at = now() where type = 'message.new';
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+insert into messages (conversation_id, sender_user_id, body) select id, auth.uid(), 'Template test' from conversations;
+select pg_temp.as_postgres();
+select pg_temp.ok((select count(*) = 0 from notifications where type = 'message.new' and read_at is null),
+  'A8. disabling a template stops that notification');
+update notification_templates set enabled = true where key = 'message.new';
+
+-- Settings drive limits
+update platform_settings set value = '1' where key = 'messages.max_per_minute';
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.fails($$insert into messages (conversation_id, sender_user_id, body)
+  select c.id, auth.uid(), 'burst ' || g from conversations c, generate_series(1, 2) g$$, 'A9. the message rate setting is enforced');
+select pg_temp.as_postgres();
+update platform_settings set value = '20' where key = 'messages.max_per_minute';
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-000000000038', 'tess@example.com', '{"age_18_plus":"true","display_name":"Tess (fictional)"}');
+insert into consents (user_id, consent_type, document_version) values
+  ('00000000-0000-0000-0000-000000000038', 'creator_data_consent', 't1'), ('00000000-0000-0000-0000-000000000038', 'discoverability', 't1');
+update creator_profiles set is_discoverable = true, discoverable_consent_at = now(), handle = 'tess.fictional'
+where user_id = '00000000-0000-0000-0000-000000000038';
+create temp table tess as select id from creator_profiles where handle = 'tess.fictional';
+grant select on tess to authenticated;
+update platform_settings set value = '0' where key = 'outreach.max_inquiries_per_hour';
+select pg_temp.login('00000000-0000-0000-0000-000000000034');
+select pg_temp.fails($$select public.send_inquiry('10000000-0000-0000-0000-000000000009',
+  (select id from tess), 'Hello Tess', 'A message long enough to pass the check.')$$,
+  'A10. the per-company outreach setting is enforced');
+select pg_temp.as_postgres();
+update platform_settings set value = '10' where key = 'outreach.max_inquiries_per_hour';
+
+-- Admin user management
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.fails($$select public.admin_set_user_status('00000000-0000-0000-0000-000000000032', 'suspended', 'spam reports')$$,
+  'A11. non-admins cannot suspend users');
+select pg_temp.login('00000000-0000-0000-0000-00000000000f', 'aal2');
+select pg_temp.fails($$select public.admin_set_user_status('00000000-0000-0000-0000-000000000032', 'suspended', '')$$,
+  'A12. suspending needs a reason');
+select public.admin_set_user_status('00000000-0000-0000-0000-000000000032', 'suspended', 'Repeated spam reports');
+select pg_temp.ok((select p.status = 'suspended' and not cp.is_discoverable from profiles p join creator_profiles cp on cp.user_id = p.id
+                   where p.id = '00000000-0000-0000-0000-000000000032'), 'A13. suspending hides the creator');
+select pg_temp.ok((select count(*) > 0 from audit_logs where action = 'profiles.update' and target_id = '00000000-0000-0000-0000-000000000032'),
+  'A14. status changes are audit-logged');
+select public.admin_set_user_status('00000000-0000-0000-0000-000000000032', 'active');
+select pg_temp.fails($$select public.admin_set_user_status(auth.uid(), 'suspended', 'testing myself')$$, 'A15. admins cannot suspend themselves');
+select pg_temp.fails($$select public.admin_set_super_admin(auth.uid(), false)$$, 'A16. admins cannot change their own role');
+select public.admin_set_super_admin('00000000-0000-0000-0000-000000000033', true);
+select pg_temp.ok((select account_type = 'super_admin' from profiles where id = '00000000-0000-0000-0000-000000000033'),
+  'A17. an admin can promote another super admin');
+select public.admin_set_super_admin('00000000-0000-0000-0000-000000000033', false);
+select pg_temp.ok((select account_type = 'company_member' from profiles where id = '00000000-0000-0000-0000-000000000033'),
+  'A18. and demote them back');
+
+-- Verification review
+select pg_temp.as_postgres();
+insert into social_accounts (id, creator_id, platform_id, handle)
+values ('50000000-0000-0000-0000-000000000001', (select id from creator_profiles where handle = 'tess.fictional'),
+        (select id from platforms where key = 'instagram'), 'tess.fictional');
+insert into analytics_snapshots (id, social_account_id, followers, verification_status)
+values ('50000000-0000-0000-0000-000000000002', '50000000-0000-0000-0000-000000000001', 12000, 'pending');
+insert into verification_requests (id, subject_type, subject_id, requested_by)
+values ('50000000-0000-0000-0000-000000000003', 'analytics', '50000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000038');
+select pg_temp.login('00000000-0000-0000-0000-00000000000f', 'aal2');
+select pg_temp.fails($$select public.admin_review_verification('50000000-0000-0000-0000-000000000003', false, '')$$,
+  'A19. rejecting needs a note for the creator');
+select public.admin_review_verification('50000000-0000-0000-0000-000000000003', true, null);
+select pg_temp.ok((select source = 'admin_verified' and verification_status = 'verified' from analytics_snapshots
+                   where id = '50000000-0000-0000-0000-000000000002'), 'A20. approving marks the numbers reviewed');
+select pg_temp.as_postgres();
+select pg_temp.ok((select title = 'Your Instagram numbers are now verified by TalentLoom.' from notifications
+                   where user_id = '00000000-0000-0000-0000-000000000038' and type = 'verification.approved'),
+  'A21. the creator is notified');
+
+-- Support
+select pg_temp.login('00000000-0000-0000-0000-000000000038');
+select public.open_support_request('Can''t upload evidence', 'verification', 'The upload button spins forever on my phone.');
+select pg_temp.login('00000000-0000-0000-0000-00000000000f', 'aal2');
+insert into support_messages (request_id, author_id, body, is_internal)
+select id, auth.uid(), 'Internal: check storage logs', true from support_requests;
+insert into support_messages (request_id, author_id, body)
+select id, auth.uid(), 'Thanks — could you try again now?' from support_requests;
+select pg_temp.login('00000000-0000-0000-0000-000000000038');
+select pg_temp.ok((select count(*) = 2 from support_messages), 'A22. users never see internal support notes');
+select pg_temp.ok((select status = 'pending' from support_requests), 'A23. an admin reply marks the request waiting on the user');
+select pg_temp.ok((select count(*) = 1 from notifications where type = 'support.reply'), 'A24. the user is notified of the reply');
+select pg_temp.login('00000000-0000-0000-0000-000000000031');
+select pg_temp.ok((select count(*) = 0 from support_requests), 'A25. users only see their own support requests');
+
 select pg_temp.as_postgres();
 \echo
 \echo ===== ALL SECURITY TESTS PASSED =====

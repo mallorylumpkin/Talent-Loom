@@ -169,6 +169,7 @@ Before clicking Deploy, open **Environment Variables** and add each of these (sa
 | `NEXT_PUBLIC_SUPABASE_URL` | Project URL |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key |
 | `SUPABASE_SECRET_KEY` | Secret key |
+| `IMPERSONATION_COOKIE_SECRET` | Needed for "View as user" in the admin console. Make one with `openssl rand -base64 48` |
 | `TOKEN_ENCRYPTION_KEY`, `CRON_SECRET` and platform keys | Only once you set up connected social accounts — see [SOCIAL-CONNECTIONS.md](SOCIAL-CONNECTIONS.md) |
 
 Click **Deploy**. When it finishes, click **Visit**.

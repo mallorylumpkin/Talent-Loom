@@ -46,7 +46,7 @@ export const creatorNav: NavSection[] = [
     items: [
       { label: "Billing", href: "/creator/billing", icon: "CreditCard", phase: 6 },
       { label: "Settings", href: "/creator/settings", icon: "Settings" },
-      { label: "Support", href: "/creator/support", icon: "LifeBuoy", phase: 5 },
+      { label: "Support", href: "/creator/support", icon: "LifeBuoy" },
     ],
   },
 ];
@@ -72,7 +72,7 @@ export const companyNav: NavSection[] = [
       { label: "Reports", href: "/company/reports", icon: "ChartNoAxesColumn", phase: 7 },
       { label: "Plan & billing", href: "/company/billing", icon: "CreditCard", phase: 6 },
       { label: "Settings", href: "/company/settings", icon: "Settings" },
-      { label: "Support", href: "/company/support", icon: "LifeBuoy", phase: 5 },
+      { label: "Support", href: "/company/support", icon: "LifeBuoy" },
     ],
   },
 ];
@@ -84,8 +84,8 @@ export const adminNav: NavSection[] = [
   {
     title: "People",
     items: [
-      { label: "Users", href: "/admin/users", icon: "Users", phase: 5 },
-      { label: "Creators", href: "/admin/creators", icon: "Sparkles", phase: 5 },
+      { label: "Users", href: "/admin/users", icon: "Users" },
+      { label: "Creators", href: "/admin/creators", icon: "Sparkles" },
       { label: "Companies", href: "/admin/companies", icon: "Building2" },
       { label: "Sales leads", href: "/admin/leads", icon: "Inbox" },
     ],
@@ -93,9 +93,10 @@ export const adminNav: NavSection[] = [
   {
     title: "Trust & safety",
     items: [
-      { label: "Verification queue", href: "/admin/verification", icon: "BadgeCheck", phase: 5 },
-      { label: "Reports", href: "/admin/reports", icon: "Flag", phase: 5 },
-      { label: "Audit log", href: "/admin/audit-logs", icon: "ScrollText", phase: 5 },
+      { label: "Verification queue", href: "/admin/verification", icon: "BadgeCheck" },
+      { label: "Reports", href: "/admin/reports", icon: "Flag" },
+      { label: "Inquiries & blocks", href: "/admin/activity", icon: "Send" },
+      { label: "Audit log", href: "/admin/audit-logs", icon: "ScrollText" },
     ],
   },
   {
@@ -109,11 +110,11 @@ export const adminNav: NavSection[] = [
   {
     title: "Platform",
     items: [
-      { label: "Categories & niches", href: "/admin/taxonomy", icon: "Shapes", phase: 5 },
-      { label: "Settings", href: "/admin/settings", icon: "Settings", phase: 5 },
-      { label: "Legal pages", href: "/admin/legal", icon: "Scale", phase: 5 },
-      { label: "Support", href: "/admin/support", icon: "LifeBuoy", phase: 5 },
-      { label: "Data export", href: "/admin/exports", icon: "Download", phase: 5 },
+      { label: "Categories & niches", href: "/admin/taxonomy", icon: "Shapes" },
+      { label: "Settings", href: "/admin/settings", icon: "Settings" },
+      { label: "Legal pages", href: "/admin/legal", icon: "Scale" },
+      { label: "Support", href: "/admin/support", icon: "LifeBuoy" },
+      { label: "Data export", href: "/admin/exports", icon: "Download" },
     ],
   },
 ];

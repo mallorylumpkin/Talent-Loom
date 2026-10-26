@@ -90,10 +90,29 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Company profile pages for signed-in members (approved companies only), linked from inquiries and messages
 - ✅ Security suite extended — 159 checks passing
 
-## Phase 5 — Admin console
-- ⬜ Users, creators, companies (full lifecycle), verification queue, reports
-- ⬜ Taxonomy, platforms, featured profiles, settings, legal pages, templates, support
-- ⬜ Audit log viewer, CSV exports, impersonation
+## Phase 5 — Admin console ✅ (built; please test locally)
+- ✅ Users: search & filter, create creator accounts (with setup link), suspend / reactivate with reason, soft-delete,
+  permanent delete (type the email to confirm; files removed), make / remove super admin (always keeps one), sign-in links
+- ✅ "View as user" for support: MFA admins only, never other admins, reason required, 30-minute window, banner with
+  Exit, **read-only enforced by the database** (that session can't write anything or change read markers), start/end and
+  reason in the audit log, user's own devices unaffected
+- ✅ Creators: list & filters, edit name/headline/bio, featured (with end date), hide from search, all accounts and numbers,
+  private evidence, portfolio and media kit (short-lived links; viewing is logged)
+- ✅ Verification queue: priority (Creator Pro) first, overdue flag from the SLA setting, screenshots inline, approve /
+  reject with a reason sent to the creator
+- ✅ Reports: open/closed queues, context (company, conversation excerpt, message), pause company outreach, decision notes,
+  reporter notified when closed
+- ✅ Inquiries & blocks: recent outreach, most-blocked companies, view-as history
+- ✅ Categories & niches, content categories, industries, support types, social platforms (add, rename, order, hide)
+- ✅ Platform settings (now enforced: message rate, per-company hourly/daily inquiry caps, verification SLA)
+- ✅ Notification wording editor — templates now drive every in-app notification and can be switched off
+- ✅ Legal pages editor (Markdown, version, lawyer-reviewed flag, stamp version on new consents)
+- ✅ Support: creators and companies open requests and reply; admins reply, add internal notes, set status; both notified
+- ✅ Audit log viewer with filters; CSV exports (users, creators, companies, inquiries, leads, support, audit log),
+  formula-injection safe, every download logged
+- ✅ Overview: 7-day activity, open support, connected accounts
+- ✅ Security suite extended — 185 checks passing
+- ⬜ Billing-related admin pages (subscriptions, payments, plans & pricing, promo codes, credits) → Phase 6
 
 ## Phase 6 — Billing
 - ⬜ Stripe products sync, Checkout and Customer Portal (Creator Pro)

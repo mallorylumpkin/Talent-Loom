@@ -46,3 +46,9 @@ psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/tests
 ```
 
 A clean run ends with `ALL SECURITY TESTS PASSED`. **Never run the test suite against your production database** — it creates fictional test users.
+
+## "View as user" (support impersonation)
+- Only an MFA-verified super admin can start it, never for another super admin or an account that has never signed in, and a reason is required.
+- TalentLoom creates a one-time sign-in for the user on the server (no email, no password). The admin's own session is kept in an AES-256-GCM encrypted, httpOnly cookie and restored on Exit.
+- That browser session is **read-only in the database**: its Supabase session id is recorded, and every write policy and function refuses it (`private.is_impersonated_session()`), including read/unread markers. The proxy also blocks form actions, account connections, password resets and data exports while it's active.
+- The banner is always visible; the window is 30 minutes, after which the admin is sent back. Start, end, admin, user and reason are in the audit log. Exiting closes only that browser session — the user's own devices stay signed in.

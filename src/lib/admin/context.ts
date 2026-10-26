@@ -20,3 +20,10 @@ export const COMPANY_STATUS_LABELS: Record<string, { label: string; tone: "neutr
   rejected: { label: "Rejected", tone: "danger" },
   suspended: { label: "Suspended", tone: "danger" },
 };
+
+export const ACCOUNT_LABELS: Record<string, string> = { creator: "Creator", company_member: "Company", super_admin: "Super admin" };
+
+export const TAXONOMY_TABLES = ["niches", "content_categories", "industries", "support_types", "platforms"] as const;
+export const TAXONOMY_LABELS: Record<(typeof TAXONOMY_TABLES)[number], string> = {
+  niches: "Niches", content_categories: "Content categories", industries: "Industries", support_types: "Support types", platforms: "Social platforms",
+};

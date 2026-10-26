@@ -134,7 +134,7 @@ export function AppShell({ nav, homeHref, user, tone = "light", banner, badges, 
   );
 
   return (
-    <div className="min-h-dvh">
+    <div className={cn("min-h-dvh", banner && "pt-10")}>
       {banner}
       {/* Desktop sidebar */}
       <aside className={cn("fixed inset-y-0 left-0 z-30 hidden w-64 border-r lg:block",
@@ -143,7 +143,7 @@ export function AppShell({ nav, homeHref, user, tone = "light", banner, badges, 
       </aside>
 
       {/* Mobile top bar */}
-      <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur lg:hidden">
+      <header className={cn("sticky z-20 flex h-14", banner ? "top-10" : "top-0", " items-center justify-between border-b border-line bg-surface/90 px-4 backdrop-blur lg:hidden")}>
         <Logo href={homeHref} showDescriptor={false} />
         <button type="button" onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open}
           className="rounded-lg p-2 text-ink hover:bg-ink/5">
