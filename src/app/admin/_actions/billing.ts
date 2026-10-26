@@ -71,8 +71,8 @@ export async function setPlanFeatureAction(planId: string, featureKey: string, _
 export async function syncStripeAction(): Promise<FormState> {
   const { supabase } = await getAdminContext();
   if (!stripeConfigured()) return { message: "Add STRIPE_SECRET_KEY first (see docs/BILLING.md)." };
-  const admin = createAdminClient();
-  const { data: plans } = await admin.from("plans").select("id, key, name, description, stripe_product_id, plan_prices(id, billing_interval, amount_cents, currency, active, stripe_price_id)")
+  // Uses the admin's own (MFA) session, so it works even if the server key is misconfigured.
+  const { data: plans } = await supabase.from("plans").select("id, key, name, description, stripe_product_id, plan_prices(id, billing_interval, amount_cents, currency, active, stripe_price_id)")
     .neq("key", "company_pending").neq("key", "creator_free");
   let created = 0;
   try {
@@ -84,14 +84,16 @@ export async function syncStripeAction(): Promise<FormState> {
       if (!product) {
         const prod = await stripe<{ id: string }>("POST", "/products", { name: `TalentLoom ${p.name}`, description: p.description ?? undefined, metadata: { plan_key: p.key } }, `product-${p.id}`);
         product = prod.id;
-        await admin.from("plans").update({ stripe_product_id: product }).eq("id", p.id);
+        const { data: saved, error: saveError } = await supabase.from("plans").update({ stripe_product_id: product }).eq("id", p.id).select("id");
+        if (saveError || !saved?.length) return { message: `Created in Stripe but couldn't save to TalentLoom (${saveError?.message ?? "no permission"}). Sign out and back in as admin, then try again.` };
       }
       for (const pr of prices) {
         const price = await stripe<{ id: string }>("POST", "/prices", {
           product, unit_amount: pr.amount_cents, currency: pr.currency.toLowerCase(), recurring: { interval: pr.billing_interval },
           metadata: { plan_key: p.key, plan_price_id: pr.id },
         }, `price-${pr.id}`);
-        await admin.from("plan_prices").update({ stripe_price_id: price.id }).eq("id", pr.id);
+        const { data: saved, error: saveError } = await supabase.from("plan_prices").update({ stripe_price_id: price.id }).eq("id", pr.id).select("id");
+        if (saveError || !saved?.length) return { message: `Created in Stripe but couldn't save to TalentLoom (${saveError?.message ?? "no permission"}). Sign out and back in as admin, then try again.` };
         created++;
       }
     }

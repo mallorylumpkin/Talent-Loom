@@ -7,6 +7,17 @@ import { FeatureCell, PlanForm, PriceForm } from "@/components/admin/billing-for
 import { syncStripeAction } from "@/app/admin/_actions/billing";
 import { getAdminContext } from "@/lib/admin/context";
 import { stripeConfigured, stripeTestMode } from "@/lib/billing/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+/** True if SUPABASE_SECRET_KEY really is the secret (service role) key — payments need it. */
+async function serverKeyOk() {
+  try {
+    const { error } = await createAdminClient().auth.admin.listUsers({ page: 1, perPage: 1 });
+    return !error;
+  } catch {
+    return false;
+  }
+}
 
 export const metadata: Metadata = { title: "Plans & pricing" };
 
@@ -21,6 +32,7 @@ export default async function PlansPage() {
     supabase.from("plan_features").select("plan_id, feature_key, enabled, limit_value"),
   ]);
   const list = (plans ?? []) as Plan[];
+  const keyOk = await serverKeyOk();
   const cell = (planId: string, key: string) => (pf ?? []).find((x: { plan_id: string; feature_key: string }) => x.plan_id === planId && x.feature_key === key) as
     { enabled: boolean; limit_value: number | null } | undefined;
 
@@ -28,6 +40,13 @@ export default async function PlansPage() {
     <>
       <PageHeader title="Plans & pricing" description="Changes apply immediately to everyone on the plan. Price changes only affect new subscribers."
         action={<ActionButton action={syncStripeAction} tone="primary" className="h-9 border border-primary px-3">Sync to Stripe</ActionButton>} />
+      {!keyOk && (
+        <Alert tone="danger" className="mb-6" title="Server key problem — payments can't be recorded">
+          <code>SUPABASE_SECRET_KEY</code> in Vercel isn&apos;t the Supabase <strong>secret</strong> key. In Supabase → Project Settings → API Keys,
+          copy the <strong>Secret key</strong> (starts with <code>sb_secret_</code>), paste it as the value of <code>SUPABASE_SECRET_KEY</code> in
+          Vercel → Settings → Environment Variables, then Redeploy.
+        </Alert>
+      )}
       {!stripeConfigured() ? <Alert tone="warning" className="mb-6">Stripe isn&apos;t connected yet. Plans and limits still work (complimentary plans); add your Stripe keys to take payments — see docs/BILLING.md.</Alert>
         : stripeTestMode() ? <Alert tone="info" className="mb-6">Stripe is in <strong>test mode</strong> — no real money moves. Use card 4242 4242 4242 4242 to test.</Alert> : null}
       {(["creator", "company"] as const).map((aud) => {
