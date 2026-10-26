@@ -21,6 +21,7 @@ export function ActionButton({
   const [armed, setArmed] = useState(false);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<string | null>(null);
 
   function run() {
     if (confirm && !armed) {
@@ -30,9 +31,11 @@ export function ActionButton({
     }
     setArmed(false);
     setError(null);
+    setDone(null);
     start(async () => {
       const res = await action();
       if (res && !res.ok && res.message) setError(res.message);
+      if (res && res.ok && res.message) setDone(res.message);
     });
   }
 
@@ -50,6 +53,7 @@ export function ActionButton({
         {armed ? confirm : children}
       </button>
       {error && <span role="alert" className="mt-1 text-xs text-danger-strong">{error}</span>}
+      {done && <span role="status" className="mt-1 text-xs text-success-strong">{done}</span>}
     </span>
   );
 }
