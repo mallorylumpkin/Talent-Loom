@@ -83,7 +83,17 @@ function daysAgo(n) {
 }
 
 async function add() {
-  const existing = new Set((await findSampleUsers()).map((u) => u.email));
+  const existingUsers = await findSampleUsers();
+  const existing = new Set(existingUsers.map((u) => u.email));
+  // Samples from an earlier, broken run (no handle) are removed so they can be recreated properly.
+  for (const u of existingUsers) {
+    const { data: cp } = await db.from("creator_profiles").select("handle").eq("user_id", u.id).maybeSingle();
+    if (!cp?.handle) {
+      await db.auth.admin.deleteUser(u.id);
+      existing.delete(u.email);
+      console.log(`• recreating incomplete sample ${u.email}`);
+    }
+  }
   const [niches, cats, platforms] = await Promise.all([lookup("niches"), lookup("content_categories"), lookup("platforms")]);
   const { data: setting } = await db.from("platform_settings").select("value").eq("key", "legal.terms_version").single();
   const version = typeof setting?.value === "string" ? setting.value : "seed";
@@ -112,12 +122,17 @@ async function add() {
       { user_id: uid, consent_type: "creator_data_consent", document_version: version },
       { user_id: uid, consent_type: "discoverability", document_version: version },
     ]);
-    await db.from("creator_profiles").update({
+    const { error: profileError } = await db.from("creator_profiles").update({
       handle: c.handle, display_name: display, headline: c.headline,
       bio: "FICTIONAL SAMPLE PROFILE for testing TalentLoom. This person and these numbers are not real.",
       city: c.city, region: c.region, country: "US",
-      seeking_management: c.seeking, representation_status: c.rep, is_discoverable: true, completeness_pct: 70,
+      seeking_management: c.seeking, representation_status: c.rep,
+      is_discoverable: true, discoverable_consent_at: new Date().toISOString(), completeness_pct: 70,
     }).eq("id", cp.id);
+    if (profileError) {
+      console.log(`✗ ${email}: profile update failed — ${profileError.message}`);
+      continue;
+    }
     await db.from("profiles").update({ display_name: display, onboarding_completed_at: new Date().toISOString() }).eq("id", uid);
     await db.from("creator_niches").insert(c.niches.filter((k) => niches[k]).map((k) => ({ creator_id: cp.id, niche_id: niches[k] })));
     await db.from("creator_categories").insert(c.cats.filter((k) => cats[k]).map((k) => ({ creator_id: cp.id, category_id: cats[k] })));
