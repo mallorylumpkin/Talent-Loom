@@ -184,12 +184,26 @@ From now on, every time code is pushed to GitHub, Vercel redeploys automatically
 
 ---
 
-## Updating the database later
+## Updating to a new phase
 
-When a new phase includes new migration files:
+Each time a new phase is pushed to GitHub, stop the site (Control + C) and run:
 ```
 $ git pull
+$ npm install
 $ npx supabase db push
+$ npm run dev
+```
+`npm install` only does something when new packages were added; `db push` applies any new database changes (type **Y** to confirm).
+
+## Optional: fictional sample creators
+
+To see the creator directory with content while testing:
+```
+$ npm run seed:fictional
+```
+This adds 6 creators clearly labelled "(fictional)". Remove them before launch:
+```
+$ npm run seed:fictional -- --remove
 ```
 
 ## Troubleshooting

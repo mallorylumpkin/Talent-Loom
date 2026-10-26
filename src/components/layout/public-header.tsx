@@ -9,6 +9,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 const links = [
+  { href: "/creators", label: "Creators" },
   { href: "/for-companies", label: "For companies" },
   { href: "/pricing", label: "Pricing" },
 ];

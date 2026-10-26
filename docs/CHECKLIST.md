@@ -18,19 +18,27 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 - ✅ Responsive dashboard shell with mobile navigation
 - ✅ Setup and deployment guide
 
-## Phase 2 — Creator profile 🔜
-- ⬜ Onboarding wizard
-- ⬜ Edit profile, photo and cover upload
-- ⬜ Niches, categories, support wanted, representation status
-- ⬜ Social accounts and manual analytics + audience demographics
-- ⬜ Analytics evidence upload + verification request
-- ⬜ Portfolio, media kit, brand partnerships
-- ⬜ Privacy & discoverability matrix with consent
-- ⬜ Public creator profile + creator directory
-- ⬜ Account settings (delete account, data export request)
-- ⬜ Fictional seed data for creators
+## Phase 2 — Creator profile ✅
+- ✅ 5-step onboarding wizard (about you → content → platforms → goals → go live), with "finish later"
+- ✅ Edit profile: name, handle, headline, bio, location, contact preference
+- ✅ Profile photo and cover image uploads
+- ✅ Niches, content types, preferred industries, support wanted, seeking-management, representation status
+- ✅ Social accounts: add, remove, set primary (Free plan limit of 3 enforced in the database)
+- ✅ Manual analytics per account with history, audience demographics (age, gender, top countries)
+- ✅ Evidence uploads (private) and verification requests; numbers always labelled self-reported until verified
+- ✅ Portfolio (links, images, PDFs; per-item visibility and featuring; Free plan limit of 12)
+- ✅ Brand partnerships
+- ✅ Media kit upload (private file; shared only through short-lived links when allowed)
+- ✅ Privacy matrix (public / approved companies / only me) for 10 kinds of information
+- ✅ Discoverability with recorded consent; consent required by the database; withdrawing consent hides the profile
+- ✅ Consent history with withdraw
+- ✅ Public creator profile (privacy-masked, owner preview, view counter) and creator directory with filters
+- ✅ Profile-strength checklist on the dashboard
+- ✅ Account settings: change password, download my data (JSON), permanently delete account
+- ✅ Fictional sample creators script (`npm run seed:fictional`, remove with `-- --remove`)
+- ✅ Security test suite extended — 85 checks passing
 
-## Phase 3 — Companies & search
+## Phase 3 — Companies & search 🔜
 - ⬜ Admin: sales leads → create company → assign plan → invite owner
 - ⬜ Team invites and roles; company profile and application
 - ⬜ Creator search with all filters, privacy masking, search index
@@ -56,4 +64,5 @@ Legend: ✅ done and in the repo · 🔜 next · ⬜ planned
 ## Phase 7 — Pro tools & polish
 - ⬜ Affiliate Code Vault, Brand-Deal Tracker, creator insights
 - ⬜ Remaining public pages (How it works, For creators, About, Contact, FAQ, Report a user)
+- ⬜ Custom media-kit page and advanced insights (Creator Pro)
 - ⬜ Accessibility pass, full seed data, testing and social-API integration guide

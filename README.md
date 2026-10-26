@@ -20,10 +20,10 @@ npm run dev                  # http://localhost:3002
 ```
 src/
   app/
-    (public)/        Homepage, pricing, for-companies (contact sales), legal pages
+    (public)/        Homepage, creator directory and profiles, pricing, for-companies (contact sales), legal pages
     (auth)/          Sign up (18+), sign in, forgot/reset password, check email
     auth/            Email-link confirmation and sign-out routes
-    creator/         Creator dashboard (role-protected)
+    creator/         Creator dashboard, onboarding, profile, accounts, analytics, portfolio, media kit, privacy, settings
     company/         Management-company dashboard (role-protected)
     admin/           Super-admin console (role + MFA protected) and MFA setup
   components/
@@ -37,7 +37,8 @@ src/
   proxy.ts           Refreshes the auth session on every request
 supabase/
   migrations/        Database schema, security policies, storage, reference data
-  tests/             Security test suite (71 checks)
+  tests/             Security test suite (85 checks)
+scripts/             Fictional sample-data script
 docs/                Setup, security model, build checklist
 ```
 

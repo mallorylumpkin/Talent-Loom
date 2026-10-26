@@ -26,12 +26,12 @@ export const creatorNav: NavSection[] = [
   {
     title: "Your profile",
     items: [
-      { label: "Edit profile", href: "/creator/profile", icon: "UserRound", phase: 2 },
-      { label: "Social accounts", href: "/creator/social-accounts", icon: "AtSign", phase: 2 },
-      { label: "Analytics", href: "/creator/analytics", icon: "ChartNoAxesColumn", phase: 2 },
-      { label: "Portfolio", href: "/creator/portfolio", icon: "Images", phase: 2 },
-      { label: "Media kit", href: "/creator/media-kit", icon: "FileText", phase: 2 },
-      { label: "Privacy & discoverability", href: "/creator/privacy", icon: "Eye", phase: 2 },
+      { label: "Edit profile", href: "/creator/profile", icon: "UserRound" },
+      { label: "Social accounts", href: "/creator/social-accounts", icon: "AtSign" },
+      { label: "Analytics", href: "/creator/analytics", icon: "ChartNoAxesColumn" },
+      { label: "Portfolio", href: "/creator/portfolio", icon: "Images" },
+      { label: "Media kit", href: "/creator/media-kit", icon: "FileText" },
+      { label: "Privacy & discoverability", href: "/creator/privacy", icon: "Eye" },
     ],
   },
   {
@@ -45,7 +45,7 @@ export const creatorNav: NavSection[] = [
     title: "Account",
     items: [
       { label: "Billing", href: "/creator/billing", icon: "CreditCard", phase: 6 },
-      { label: "Settings", href: "/creator/settings", icon: "Settings", phase: 2 },
+      { label: "Settings", href: "/creator/settings", icon: "Settings" },
       { label: "Support", href: "/creator/support", icon: "LifeBuoy", phase: 5 },
     ],
   },

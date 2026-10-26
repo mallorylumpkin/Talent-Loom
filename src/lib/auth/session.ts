@@ -47,8 +47,7 @@ export function homeFor(viewer: Pick<Viewer, "accountType" | "onboardingComplete
     case "company_member":
       return "/company";
     default:
-      // Phase 2 adds the onboarding wizard; the dashboard prompts creators to finish their profile.
-      return "/creator";
+      return viewer.onboardingCompletedAt ? "/creator" : "/creator/onboarding";
   }
 }
 

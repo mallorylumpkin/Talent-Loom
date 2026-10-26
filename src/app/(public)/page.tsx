@@ -1,4 +1,5 @@
 import { ArrowRight, BadgeCheck, Eye, Lock, MessageCircle, Search, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Badge, ProvenanceBadge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { brand } from "@/lib/brand";
@@ -41,9 +42,15 @@ function SampleCreatorCard() {
   );
 }
 
-export default function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ account_deleted?: string }> }) {
+  const { account_deleted } = await searchParams;
   return (
     <>
+      {account_deleted && (
+        <div className="mx-auto max-w-6xl px-5 pt-6">
+          <Alert tone="success">Your account and data have been deleted.</Alert>
+        </div>
+      )}
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-14 px-5 pt-14 pb-20 md:grid-cols-[1.15fr_1fr] md:pt-20">
         <div>

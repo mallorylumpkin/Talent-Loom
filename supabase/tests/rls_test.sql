@@ -127,6 +127,9 @@ select pg_temp.fails($$update profiles set status = 'active', email = 'x@y.z' wh
   '13. creator cannot change protected account fields');
 select pg_temp.fails($$update creator_profiles set is_featured = true$$,
   '14. creator cannot mark themselves featured');
+select pg_temp.fails($$update creator_profiles set is_discoverable = true$$,
+  '15a. discoverability requires consent (enforced in the database)');
+insert into consents (user_id, consent_type, document_version) values (auth.uid(), 'discoverability', 't1');
 update creator_profiles set is_discoverable = true;
 select pg_temp.ok((select is_discoverable and discoverable_consent_at is not null from creator_profiles),
   '15. turning on discoverability stamps consent');
@@ -138,7 +141,11 @@ select pg_temp.fails($$insert into social_accounts (creator_id, platform_id, han
   select private.my_creator_id(), id, 'ava_pin' from platforms where key = 'pinterest'$$,
   '16. Free plan limited to 3 social accounts');
 
--- Analytics provenance
+-- Analytics need data consent, and are always self-reported
+select pg_temp.fails($$insert into analytics_snapshots (social_account_id, followers)
+  select id, 1000 from social_accounts where handle = 'ava_instagram'$$,
+  '17a. analytics cannot be stored before creator data consent');
+insert into consents (user_id, consent_type, document_version) values (auth.uid(), 'creator_data_consent', 't1');
 insert into analytics_snapshots (social_account_id, followers, engagement_rate, source, verification_status)
 select id, 84200, 5.8, 'admin_verified', 'verified' from social_accounts where handle = 'ava_instagram';
 select pg_temp.ok((select source = 'self_reported' and verification_status = 'none' from analytics_snapshots),
@@ -176,6 +183,39 @@ select pg_temp.ok(pg_temp.affected($$insert into social_accounts (creator_id, pl
   select private.my_creator_id(), id, 'ava_pin' from platforms where key = 'pinterest'$$) = 1,
   '27. Creator Pro removes the social-account limit');
 
+-- Phase 2: verification requests
+select pg_temp.fails($$select public.request_verification((select id from analytics_snapshots limit 1))$$,
+  'P2-1. verification needs uploaded evidence');
+insert into analytics_evidence (creator_id, snapshot_id, storage_path, file_name, mime_type, size_bytes)
+select private.my_creator_id(), id, auth.uid() || '/proof.png', 'proof.png', 'image/png', 1000 from analytics_snapshots limit 1;
+select public.request_verification((select id from analytics_snapshots limit 1));
+select pg_temp.ok((select verification_status = 'pending' and source = 'self_reported' from analytics_snapshots),
+  'P2-2. creator can request verification; numbers stay self-reported while pending');
+select pg_temp.fails($$select public.request_verification((select id from analytics_snapshots limit 1))$$,
+  'P2-3. duplicate verification requests are blocked');
+
+-- Phase 2: public profile respects privacy settings
+update creator_profiles set headline = 'Fictional wellness creator', bio = 'Fictional bio', city = 'Austin';
+select pg_temp.as_anon();
+select pg_temp.ok((select (j ->> 'handle') = 'ava.fictional' and (j ->> 'bio') = 'Fictional bio'
+                          and (j -> 'social_accounts' -> 0 ->> 'followers') = '84200'
+                          and (j -> 'social_accounts' -> 0 ->> 'engagement_rate') is null
+                          and (j ->> 'is_owner_preview') = 'false'
+                   from (select public.get_public_creator_profile('Ava.Fictional') j) x),
+  'P2-4. visitors see public fields; engagement (approved companies only) is hidden');
+select pg_temp.ok((select (public.list_public_creators() ->> 'total') = '1'),
+  'P2-5. directory lists discoverable creators');
+select public.record_creator_profile_view((select (public.get_public_creator_profile('ava.fictional') ->> 'id')::uuid));
+select pg_temp.as_postgres();
+select pg_temp.ok((select profile_views_count = 1 from creator_profiles where handle = 'ava.fictional'),
+  'P2-6. public profile views are counted');
+update creator_privacy_settings set bio = 'private'
+  where creator_id = (select id from creator_profiles where handle = 'ava.fictional');
+select pg_temp.as_anon();
+select pg_temp.ok((select public.get_public_creator_profile('ava.fictional') ->> 'bio') is null,
+  'P2-7. fields set to private disappear from the public profile');
+select pg_temp.login('00000000-0000-0000-0000-00000000000a');
+
 -- ---------------------------------------------------------------------
 -- Creator B cannot touch A
 -- ---------------------------------------------------------------------
@@ -186,6 +226,21 @@ select pg_temp.ok((select count(*) = 0 from social_accounts) and (select count(*
                   and (select count(*) = 0 from affiliate_codes), '28. another creator sees none of A''s data');
 select pg_temp.ok(pg_temp.affected($$update creator_profiles set bio = 'hacked'
   where user_id = '00000000-0000-0000-0000-00000000000a'$$) = 0, '29. another creator cannot edit A''s profile');
+select pg_temp.ok((select (public.get_public_creator_profile('ava.fictional') ->> 'is_owner_preview') = 'false'),
+  'P2-8. other users never get owner-preview access');
+update creator_profiles set handle = 'ben.fictional';
+select pg_temp.ok(public.get_public_creator_profile('ben.fictional') is not null
+                  and (select public.get_public_creator_profile('ben.fictional') ->> 'is_owner_preview') = 'true',
+  'P2-9. a hidden creator can preview their own page');
+select pg_temp.login('00000000-0000-0000-0000-00000000000a');
+select pg_temp.ok(public.get_public_creator_profile('ben.fictional') is null,
+  'P2-10. hidden (non-discoverable) profiles are not visible to others');
+select pg_temp.login('00000000-0000-0000-0000-00000000000b');
+insert into portfolio_items (creator_id, title, item_type, url)
+select private.my_creator_id(), 'Fictional item ' || g, 'link', 'https://example.com/' || g from generate_series(1, 12) g;
+select pg_temp.fails($$insert into portfolio_items (creator_id, title, item_type, url)
+  values (private.my_creator_id(), 'One too many', 'link', 'https://example.com/13')$$,
+  'P2-11. Free plan limited to 12 portfolio items');
 select pg_temp.fails($$insert into analytics_snapshots (social_account_id, followers)
   values (current_setting('tl.a_account')::uuid, 1)$$, '30. cannot attach analytics to someone else''s account');
 
@@ -314,6 +369,11 @@ select pg_temp.login('00000000-0000-0000-0000-00000000000a');
 update analytics_snapshots set followers = 90000;
 select pg_temp.ok((select source = 'self_reported' and verification_status = 'none' from analytics_snapshots),
   '61. editing verified numbers resets them to self-reported');
+
+-- Revoking consent hides the profile
+update consents set revoked_at = now() where consent_type = 'discoverability' and user_id = auth.uid();
+select pg_temp.ok((select not is_discoverable from creator_profiles),
+  'P2-12. revoking discoverability consent hides the profile immediately');
 
 -- Suspension
 select pg_temp.as_postgres();

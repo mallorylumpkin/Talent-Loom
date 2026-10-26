@@ -21,6 +21,8 @@
 - Super-admin powers require an **MFA (aal2) session**, checked inside the database.
 - `audit_logs` rejects UPDATE, DELETE and TRUNCATE for every role.
 - Internal helper functions live in a `private` schema that the public API cannot call.
+- Analytics can't be stored without the creator's data consent, and a profile can't become discoverable without discoverability consent — both enforced in the database. Withdrawing consent hides the profile immediately.
+- Public profiles and the directory are served by database functions that return only fields the creator marked Public.
 - Storage: users can only write inside a folder named with their own user id; company logos only by members with `company.edit`; private buckets are never public.
 
 ## Secrets
