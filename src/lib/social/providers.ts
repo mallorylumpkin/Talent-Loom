@@ -1,6 +1,11 @@
 import "server-only";
 import { publicEnv } from "@/lib/env";
 
+/** Reads a provider credential, ignoring stray spaces or quotes pasted into the hosting dashboard. */
+function env(name: string): string {
+  return (process.env[name] ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
+}
+
 /**
  * Official platform connections. Each provider talks only to the platform's
  * documented OAuth + API endpoints; nothing is scraped or estimated.
@@ -138,10 +143,10 @@ const youtube: Provider = {
   key: "youtube",
   label: "YouTube",
   requirement: "Any YouTube channel. Choose the channel's Google account (or Brand Account) when asked.",
-  configured: () => !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+  configured: () => !!(env("GOOGLE_CLIENT_ID") && env("GOOGLE_CLIENT_SECRET")),
   authorizeUrl(state, redirectUri) {
     const p = new URLSearchParams({
-      client_id: process.env.GOOGLE_CLIENT_ID!,
+      client_id: env("GOOGLE_CLIENT_ID"),
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "https://www.googleapis.com/auth/youtube.readonly",
@@ -158,8 +163,8 @@ const youtube: Provider = {
       "https://oauth2.googleapis.com/token",
       form({
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: env("GOOGLE_CLIENT_ID"),
+        client_secret: env("GOOGLE_CLIENT_SECRET"),
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
@@ -179,8 +184,8 @@ const youtube: Provider = {
       "YouTube",
       "https://oauth2.googleapis.com/token",
       form({
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: env("GOOGLE_CLIENT_ID"),
+        client_secret: env("GOOGLE_CLIENT_SECRET"),
         refresh_token: t.refreshToken,
         grant_type: "refresh_token",
       }),
@@ -259,10 +264,10 @@ const instagram: Provider = {
   key: "instagram",
   label: "Instagram",
   requirement: "Instagram Business or Creator accounts only (switch for free in Instagram → Settings → Account type).",
-  configured: () => !!(process.env.INSTAGRAM_APP_ID && process.env.INSTAGRAM_APP_SECRET),
+  configured: () => !!(env("INSTAGRAM_APP_ID") && env("INSTAGRAM_APP_SECRET")),
   authorizeUrl(state, redirectUri) {
     const p = new URLSearchParams({
-      client_id: process.env.INSTAGRAM_APP_ID!,
+      client_id: env("INSTAGRAM_APP_ID"),
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "instagram_business_basic",
@@ -278,8 +283,8 @@ const instagram: Provider = {
       "Instagram",
       "https://api.instagram.com/oauth/access_token",
       form({
-        client_id: process.env.INSTAGRAM_APP_ID!,
-        client_secret: process.env.INSTAGRAM_APP_SECRET!,
+        client_id: env("INSTAGRAM_APP_ID"),
+        client_secret: env("INSTAGRAM_APP_SECRET"),
         grant_type: "authorization_code",
         redirect_uri: redirectUri,
         code: code.replace(/#_$/, ""),
@@ -294,7 +299,7 @@ const instagram: Provider = {
       "Instagram",
       `${IG_GRAPH}/access_token?${new URLSearchParams({
         grant_type: "ig_exchange_token",
-        client_secret: process.env.INSTAGRAM_APP_SECRET!,
+        client_secret: env("INSTAGRAM_APP_SECRET"),
         access_token: s.access_token,
       })}`,
     );
@@ -366,10 +371,10 @@ const tiktok: Provider = {
   key: "tiktok",
   label: "TikTok",
   requirement: "Any public TikTok account.",
-  configured: () => !!(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET),
+  configured: () => !!(env("TIKTOK_CLIENT_KEY") && env("TIKTOK_CLIENT_SECRET")),
   authorizeUrl(state, redirectUri) {
     const p = new URLSearchParams({
-      client_key: process.env.TIKTOK_CLIENT_KEY!,
+      client_key: env("TIKTOK_CLIENT_KEY"),
       scope: "user.info.basic,user.info.profile,user.info.stats,video.list",
       response_type: "code",
       redirect_uri: redirectUri,
@@ -384,8 +389,8 @@ const tiktok: Provider = {
       "TikTok",
       `${TT_API}/oauth/token/`,
       form({
-        client_key: process.env.TIKTOK_CLIENT_KEY!,
-        client_secret: process.env.TIKTOK_CLIENT_SECRET!,
+        client_key: env("TIKTOK_CLIENT_KEY"),
+        client_secret: env("TIKTOK_CLIENT_SECRET"),
         code,
         grant_type: "authorization_code",
         redirect_uri: redirectUri,
@@ -410,8 +415,8 @@ const tiktok: Provider = {
       "TikTok",
       `${TT_API}/oauth/token/`,
       form({
-        client_key: process.env.TIKTOK_CLIENT_KEY!,
-        client_secret: process.env.TIKTOK_CLIENT_SECRET!,
+        client_key: env("TIKTOK_CLIENT_KEY"),
+        client_secret: env("TIKTOK_CLIENT_SECRET"),
         grant_type: "refresh_token",
         refresh_token: t.refreshToken,
       }),
@@ -470,7 +475,7 @@ const tiktok: Provider = {
   },
   async revoke(t) {
     await fetch(`${TT_API}/oauth/revoke/`, {
-      ...form({ client_key: process.env.TIKTOK_CLIENT_KEY!, client_secret: process.env.TIKTOK_CLIENT_SECRET!, token: t.accessToken }),
+      ...form({ client_key: env("TIKTOK_CLIENT_KEY"), client_secret: env("TIKTOK_CLIENT_SECRET"), token: t.accessToken }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     }).catch(() => {});
   },
@@ -520,10 +525,10 @@ const facebook: Provider = {
   key: "facebook",
   label: "Facebook",
   requirement: "Facebook Pages you manage (creator or business Pages). Personal profiles can't be connected — that's Facebook's rule.",
-  configured: () => !!(process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET),
+  configured: () => !!(env("FACEBOOK_APP_ID") && env("FACEBOOK_APP_SECRET")),
   authorizeUrl(state, redirectUri) {
     const p = new URLSearchParams({
-      client_id: process.env.FACEBOOK_APP_ID!,
+      client_id: env("FACEBOOK_APP_ID"),
       redirect_uri: redirectUri,
       response_type: "code",
       scope: "pages_show_list,pages_read_engagement",
@@ -535,8 +540,8 @@ const facebook: Provider = {
     const short = await call<{ access_token: string }>(
       "Facebook",
       `${FB_GRAPH}/oauth/access_token?${new URLSearchParams({
-        client_id: process.env.FACEBOOK_APP_ID!,
-        client_secret: process.env.FACEBOOK_APP_SECRET!,
+        client_id: env("FACEBOOK_APP_ID"),
+        client_secret: env("FACEBOOK_APP_SECRET"),
         redirect_uri: redirectUri,
         code,
       })}`,
@@ -546,8 +551,8 @@ const facebook: Provider = {
       "Facebook",
       `${FB_GRAPH}/oauth/access_token?${new URLSearchParams({
         grant_type: "fb_exchange_token",
-        client_id: process.env.FACEBOOK_APP_ID!,
-        client_secret: process.env.FACEBOOK_APP_SECRET!,
+        client_id: env("FACEBOOK_APP_ID"),
+        client_secret: env("FACEBOOK_APP_SECRET"),
         fb_exchange_token: short.access_token,
       })}`,
     );
