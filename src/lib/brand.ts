@@ -5,5 +5,5 @@ export const brand = {
   tagline: "Where social creators get signed",
   description:
     "TalentLoom connects growing social media creators with vetted management companies and talent agencies.",
-  supportEmail: "support@talentloom.example",
+  supportEmail: "support@talentloom.live",
 } as const;
