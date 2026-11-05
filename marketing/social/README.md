@@ -8,9 +8,9 @@
 - Goal: followers and sign-ups at talentloom.live/signup.
 
 ## Scheduled as of Nov 4
-Instagram: p01, r01, p02, p03, r02, p04, r03, p05, r04, p06 (times from content.py).
+Instagram: p01 (sent Nov 5), r01, p02, p03, r02, p04, r03, p05, r04, p06, r05 (times from content.py).
 TikTok (7:00pm CT): p01 Nov 5, r01 Nov 6, r02 Nov 8, p03 Nov 9, r05 Nov 10, r03 Nov 12, p04 Nov 13, r06 Nov 15, r04 Nov 17, r07 Nov 19.
-Not yet scheduled: Instagram r05, p07, p08, r06, p09, r07, p10, r08, p11, p12 and all Stories; TikTok r08 and remaining carousels.
+Not yet scheduled: Instagram p07, p08, r06, p09, r07, p10, r08, p11, p12 and all Stories; TikTok r08 and remaining carousels.
 
 ## Daily log
 See LOG.md.
