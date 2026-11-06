@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getAdminContext } from "@/lib/admin/context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getOrCreateCustomer } from "@/lib/billing/customers";
-import { stripe, stripeConfigured, StripeError } from "@/lib/billing/stripe";
+import { stripe, stripeConfigured, stripeMode, stripeObjectExists, StripeError } from "@/lib/billing/stripe";
 import { publicEnv } from "@/lib/env";
 import { dbErrorMessage, uuid } from "@/lib/actions/helpers";
 import type { FormState } from "@/lib/actions/types";
@@ -78,11 +78,17 @@ export async function syncStripeAction(): Promise<FormState> {
   try {
     for (const p of (plans ?? []) as { id: string; key: string; name: string; description: string | null; stripe_product_id: string | null;
       plan_prices: { id: string; billing_interval: string; amount_cents: number; currency: string; active: boolean; stripe_price_id: string | null }[] }[]) {
-      const prices = p.plan_prices.filter((x) => x.active && !x.stripe_price_id && x.amount_cents > 0);
+      // IDs saved in the other Stripe mode (test vs live) don't exist here: treat them as missing.
+      const prices: typeof p.plan_prices = [];
+      for (const x of p.plan_prices) {
+        if (!x.active || x.amount_cents <= 0) continue;
+        if (!x.stripe_price_id || !(await stripeObjectExists(`/prices/${x.stripe_price_id}`))) prices.push(x);
+      }
       if (!prices.length) continue;
       let product = p.stripe_product_id;
+      if (product && !(await stripeObjectExists(`/products/${product}`))) product = null;
       if (!product) {
-        const prod = await stripe<{ id: string }>("POST", "/products", { name: `TalentLoom ${p.name}`, description: p.description ?? undefined, metadata: { plan_key: p.key } }, `product-${p.id}`);
+        const prod = await stripe<{ id: string }>("POST", "/products", { name: `TalentLoom ${p.name}`, description: p.description ?? undefined, metadata: { plan_key: p.key } }, `${stripeMode()}-product-${p.id}`);
         product = prod.id;
         const { data: saved, error: saveError } = await supabase.from("plans").update({ stripe_product_id: product }).eq("id", p.id).select("id");
         if (saveError || !saved?.length) return { message: `Created in Stripe but couldn't save to TalentLoom (${saveError?.message ?? "no permission"}). Sign out and back in as admin, then try again.` };
@@ -91,7 +97,7 @@ export async function syncStripeAction(): Promise<FormState> {
         const price = await stripe<{ id: string }>("POST", "/prices", {
           product, unit_amount: pr.amount_cents, currency: pr.currency.toLowerCase(), recurring: { interval: pr.billing_interval },
           metadata: { plan_key: p.key, plan_price_id: pr.id },
-        }, `price-${pr.id}`);
+        }, `${stripeMode()}-price-${pr.id}-${pr.amount_cents}`);
         const { data: saved, error: saveError } = await supabase.from("plan_prices").update({ stripe_price_id: price.id }).eq("id", pr.id).select("id");
         if (saveError || !saved?.length) return { message: `Created in Stripe but couldn't save to TalentLoom (${saveError?.message ?? "no permission"}). Sign out and back in as admin, then try again.` };
         created++;

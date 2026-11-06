@@ -73,6 +73,22 @@ export async function stripe<T = Record<string, unknown>>(method: "GET" | "POST"
   return json;
 }
 
+/** "live" or "test", from the secret key. Used to keep test and live IDs and idempotency keys apart. */
+export function stripeMode(): "live" | "test" {
+  return stripeTestMode() ? "test" : "live";
+}
+
+/** True if the object exists in the Stripe account and mode the current key belongs to. */
+export async function stripeObjectExists(path: string): Promise<boolean> {
+  try {
+    const obj = await stripe<{ deleted?: boolean }>("GET", path);
+    return !obj.deleted;
+  } catch (e) {
+    if (e instanceof StripeError && e.code === "resource_missing") return false;
+    throw e;
+  }
+}
+
 /** Verifies the Stripe-Signature header (HMAC-SHA256, 5-minute tolerance). */
 export function verifyWebhook(payload: string, header: string | null, secret: string, toleranceSec = 300): boolean {
   if (!header) return false;
