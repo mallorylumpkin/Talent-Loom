@@ -21,3 +21,6 @@ See LOG.md.
   Caption: "Watch my stats fill in by themselves. Connect Instagram, TikTok, YouTube or Facebook and your real numbers show up on your TalentLoom profile, labeled so managers trust them. Free for creators 18+ at talentloom.live" + creator hashtags.
 - `d02.mp4` (18s) company demo: creator search filters, results, compare, send inquiry.
   Caption: "POV: you're a talent manager scouting creators. Search by niche and audience, compare verified stats, and reach out in the app. Talent managers: request access at talentloom.live/for-companies" + #talentmanagement #talentmanager #influencermarketing #creatoreconomy.
+- IMPORTANT (owner request, Nov 6): schedule d01 and d02 with schedulingType "notification" (not automatic) on BOTH Instagram and TikTok,
+  so Buffer reminds the owner at post time and she publishes them in the app with a trending sound. Times: d01 Sat Nov 21 6:00pm CT,
+  d02 Tue Nov 24 12:00pm CT (TikTok 7:00pm the same days), or the next open slots if those are taken.
