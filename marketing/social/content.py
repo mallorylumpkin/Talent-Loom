@@ -1,4 +1,6 @@
 # TalentLoom Instagram: 30 days (Nov 5 – Dec 4, 2026). Times are America/Chicago.
+BRAND_LINE = "You don't need a million followers to get a manager. You need the right people to see your real numbers."
+# Villains: gatekeeping (managers only look at huge accounts) and fake agencies that charge creators upfront fees.
 # Slide markup: *word* = violet highlight, _word_ = coral highlight, | = line break.
 
 TAGS_CREATOR = "#contentcreator #creatortips #smallcreator #influencertips #creatoreconomy"
@@ -34,7 +36,20 @@ FEED = [
     "On TalentLoom your stats come straight from Instagram, TikTok, YouTube or Facebook.\n\n"
     "Save this if you're hoping to get signed this year.\n\n" + TAGS_CREATOR)),
 
-  dict(id="p02", date="2026-11-07", time="10:00", kind="image", slides=[
+  dict(id="m01", date="2026-11-07", time="10:00", kind="carousel", slides=[
+    dict(t="cover", kicker="Small creators, read this", title="You don't need a *million followers* to get a manager."),
+    dict(t="statement", title="You need the right people to see your _real numbers._"),
+    dict(t="list", n="01", title="Gatekeeping", body="Managers only look at the biggest accounts, so great creators at 10K never get seen."),
+    dict(t="list", n="02", title="Fake \u201cagencies\u201d", body="They charge small creators a fee to sign, then disappear."),
+    dict(t="statement", title="So we built TalentLoom.|Vetted managers search creators by their *real numbers*. Free for creators."),
+    dict(t="cta", title="Get seen by the right people", body="Link in bio"),
+  ], caption=(
+    "You don't need a million followers to get a manager. You need the right people to see your real numbers.\n\n"
+    "Two things keep growing creators stuck: managers who only look at the biggest accounts, and fake agencies "
+    "that charge you to sign. TalentLoom is built to fix both.\n\n"
+    "Every company is vetted, your stats come straight from your accounts, and it's free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+
+  dict(id="p02", date="2026-12-05", time="10:00", kind="image", slides=[
     dict(t="quote", title="Your numbers deserve to be *believed.*"),
   ], caption=(
     "Connect your accounts once and your follower count, average views and engagement rate update on their own. "

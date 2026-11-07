@@ -19,3 +19,10 @@ See LOG.md.
 ## Product demos (added Nov 6)
 `d01.mp4` (creator demo) and `d02.mp4` (company demo) are being posted BY HAND by the owner with trending audio.
 Do NOT schedule d01 or d02 in Buffer on any channel.
+
+## Brand line and villains (owner direction, Nov 6) — use in captions and new content
+- Line: "You don't need a million followers to get a manager. You need the right people to see your real numbers."
+- Villains: gatekeeping (managers only look at the biggest accounts) and fake "agencies" that charge creators to sign.
+- m01 = manifesto carousel (replaces p02 on Nov 7; p02 moved to Dec 5).
+- spotlight.py = weekly Founding Creator Spotlight carousel (Fridays). Only with the creator's written OK.
+- The owner films her own founder videos; she'll send them to be scheduled.
