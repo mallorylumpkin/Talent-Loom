@@ -15,3 +15,9 @@ Not yet scheduled: Instagram p07, p08, r06, p09, r07, p10, r08, p11, p12 and all
 
 ## Daily log
 See LOG.md.
+
+## Product demos (added Nov 6) — schedule these next, on both Instagram (Reel) and TikTok
+- `d01.mp4` (20s) creator demo: connect Instagram, stats fill in, labeled "From Instagram", turn on discovery.
+  Caption: "Watch my stats fill in by themselves. Connect Instagram, TikTok, YouTube or Facebook and your real numbers show up on your TalentLoom profile, labeled so managers trust them. Free for creators 18+ at talentloom.live" + creator hashtags.
+- `d02.mp4` (18s) company demo: creator search filters, results, compare, send inquiry.
+  Caption: "POV: you're a talent manager scouting creators. Search by niche and audience, compare verified stats, and reach out in the app. Talent managers: request access at talentloom.live/for-companies" + #talentmanagement #talentmanager #influencermarketing #creatoreconomy.
