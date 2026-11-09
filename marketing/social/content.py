@@ -207,6 +207,22 @@ FEED = [
     "This is the moment you're building toward. Make your profile one a manager can say yes to in 10 seconds.\n\n"
     "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 
+  # Added Nov 9: Reel version of p03. TikTok photo posts get ~0 views while Reels get 30-80, and Reel viewers
+  # leave at ~1.5-2s, so the hook is visible on frame 0 (instant=True) and the first scene is short.
+  dict(id="r09", date="2026-11-11", time="18:00", kind="reel", scenes=[
+    dict(lines=["5 signs you're ready", "for a *manager*"], d=1.8, instant=True),
+    dict(lines=["01", "Brands are _emailing_ you"], d=1.9, step=True),
+    dict(lines=["02", "You post on a schedule"], d=1.8, step=True),
+    dict(lines=["03", "Your niche is clear"], d=1.7, step=True),
+    dict(lines=["04", "Your engagement holds up"], d=1.8, step=True),
+    dict(lines=["05", "You'd rather create than *negotiate*"], d=2.0, step=True),
+    dict(lines=["3 out of 5?", "Get in front of managers."], d=2.2, dark=True),
+    dict(lines=["Free for creators 18+", "talentloom.live"], d=2.6, end=True),
+  ], caption=(
+    "How many of these are you? Drop your number in the comments.\n\n"
+    "If it's 3 or more, it might be time to get in front of management teams. "
+    "TalentLoom is free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+
   # ---------------- Week 5 ----------------
   dict(id="p10", date="2026-12-01", time="11:30", kind="carousel", slides=[
     dict(t="cover", kicker="For talent managers", title="Scout with *real* numbers", dark=True),

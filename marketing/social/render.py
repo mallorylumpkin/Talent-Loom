@@ -201,7 +201,11 @@ def reel_scene(sc, k, total, t0, dur):
         body += f'<div class="pc">{statcard()}</div>'
         body = body.replace('class="ln"', 'class="ln" style="font-size:96px"', 1) if False else body
     # progress bar: grows across the whole reel
-    css_bar = f"@keyframes bar{{from{{width:{t0/total*100:.2f}%}}to{{width:{(t0+dur)/total*100:.2f}%}}}}.bar{{animation:bar {dur}s linear forwards}}"
+    if sc.get("instant"):  # hook text fully visible on frame 0 (no fade-in), so the first frame stops the scroll
+        css_bar_instant = ".ln,.stepk{opacity:1!important;animation:none!important}"
+    else:
+        css_bar_instant = ""
+    css_bar = css_bar_instant + f"@keyframes bar{{from{{width:{t0/total*100:.2f}%}}to{{width:{(t0+dur)/total*100:.2f}%}}}}.bar{{animation:bar {dur}s linear forwards}}"
     inner = f'<div class="grow" style="max-height:420px"></div>{body}<div class="grow"></div><div style="height:520px"></div>'
     doc = page(1080, 1920, inner, dark=dark, pad=0, foot=150, top=180, extra_css=REEL_CSS + css_bar)
     return doc.replace('<div class="wrap">', '<div class="bar"></div><div class="wrap" style="padding:0 80px;justify-content:center">')
