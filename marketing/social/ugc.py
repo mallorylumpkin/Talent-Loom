@@ -77,5 +77,72 @@ def scenes():
     s8 = end("Your creator account is <span class='hv'>free</span>", "Link in bio")
     return [(s1, 3.0), (s2, 4.8), (s3, 3.0), (s4, 3.2), (s5, 3.0), (s6, 3.6), (s7, 4.4), (s8, 5.0)]
 
+NOTIF = """<style>
+.lock{position:absolute;inset:0;background:linear-gradient(160deg,#2A2140,#16131F)}
+.clock{position:absolute;left:0;right:0;top:330px;text-align:center;color:#FAF7F2;font-size:190px;font-weight:800;letter-spacing:-.04em}
+.date{position:absolute;left:0;right:0;top:300px;text-align:center;color:#B9B3C6;font-size:40px;font-weight:700}
+.note{position:absolute;left:70px;right:70px;top:760px;background:rgba(255,255,255,.94);border-radius:44px;padding:36px 40px;display:flex;gap:28px;align-items:center;opacity:0;animation:drop .45s cubic-bezier(.2,1.4,.4,1) .6s forwards;box-shadow:0 30px 70px rgba(0,0,0,.35)}
+@keyframes drop{from{opacity:0;transform:translateY(-120px) scale(.95)}to{opacity:1;transform:none}}
+.note .ic{width:110px;height:110px;border-radius:28px;background:#16131F;display:flex;align-items:center;justify-content:center;flex:none}
+.note b{display:block;font-size:34px;color:#16131F}.note p{margin:6px 0 0;font-size:34px;color:#16131F;font-weight:600;line-height:1.25}
+.note small{font-size:26px;color:#6B6577;font-weight:700;margin-left:auto;align-self:flex-start}
+.msg{background:#fff;border:2px solid #E7E1D8;border-radius:30px;padding:30px;margin-top:26px;font-size:30px;line-height:1.4;font-weight:600;animation:slidein .4s both}
+.from{display:flex;gap:20px;align-items:center;font-weight:800;font-size:30px}
+.from i{width:76px;height:76px;border-radius:20px;background:linear-gradient(135deg,#16131F,#5B3DF5);display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-size:28px}
+.glow{box-shadow:0 0 0 6px #5B3DF5,0 20px 50px rgba(91,61,245,.35)!important}
+</style>"""
+
+def you_card(i, glow_at=None):
+    g = f'animation:slidein .4s {.3 + i*.18:.2f}s forwards,glowon .3s {glow_at}s forwards' if glow_at else f'animation-delay:{.3 + i*.18:.2f}s'
+    return (f'<div class="cc" style="{g}"><div class="av" style="background:linear-gradient(135deg,#FF6B57,#5B3DF5)">YOU</div>'
+            '<div class="n">You</div><div class="hd">@yourhandle · Skincare</div><div class="cst">31.4K <span>followers</span></div>'
+            '<div class="cst">5.6% <span>engagement</span></div><div style="margin-top:12px"><span class="badge" style="font-size:19px">✓ Instagram</span></div></div>')
+
+def scenes2():
+    # 0-3.4 "Picture this: an agency finds you. Not the other way around."
+    s1 = doc(EXTRA + f'<div class="q"><h1>{words("Picture this: an agency finds|hv you.|hv", .05, .22)}</h1>'
+             f'<div style="font-size:54px;font-weight:800;color:var(--mut);margin-top:50px;opacity:0;animation:fadeup .4s 1.8s forwards">Not the other way around.</div></div>', dark=True)
+    # 3.4-7.0 "You make your free profile and switch on discoverable."
+    s2 = doc(phone("Privacy & discoverability", f'<div class="h">Privacy</div><div class="pbox"><div class="prow" style="border:0">'
+             f'<div>Discoverable<div class="sub" style="margin:0">Approved companies can find you</div></div><div class="sw" style="--t:1.4s"></div></div></div>'
+             f'<div class="pbox"><div class="prow"><span>Followers & engagement</span><span class="badge" style="margin-left:auto">Public</span></div>'
+             f'<div class="prow"><span>Email & phone</span><span class="badge" style="margin-left:auto;background:#F1EEEA;color:#6B6577">Private</span></div></div>',
+             "Your profile <span class='hv'>goes live</span>") + cursor(700, 1500, 790, 605, .8, .4))
+    # 7.0-10.6 "You connect your accounts, so your stats come straight from the platform."
+    tiles = ('<div class="tiles"><div class="tile"><b id="f">0</b><span>Followers</span></div><div class="tile"><b id="v">0</b><span>Avg views</span></div>'
+             '<div class="tile"><b id="e">0</b><span>Engagement</span></div></div>')
+    s3 = doc(phone("Social accounts", f'<div class="h">Your accounts</div><div class="pbox" style="animation:slidein .4s both"><div class="prow" style="border:0;padding-top:0">'
+             f'<div class="dot" style="background:#E1306C">IG</div><div>@yourhandle<div class="sub" style="margin:0">Instagram · Primary</div></div>'
+             f'<span class="badge" style="margin-left:auto">✓ Verified</span></div>{tiles}</div>', "Your stats, <span class='hc'>verified</span>"),
+             script=counter_js([("f", 31.4, 1, "K", 400, 1400), ("v", 9.2, 1, "K", 600, 1400), ("e", 5.6, 1, "%", 800, 1400)]))
+    # 10.6-14.4 "Meanwhile, a management team is searching your niche..."
+    fchips = "".join(f'<span class="fchip" style="animation-delay:{1.3 + i*.35:.2f}s">{x}</span>'
+                     for i, x in enumerate(["Niche: Skincare", "Followers: 10K–100K", "Not represented"]))
+    s4 = doc(phone("Creator search · Example Management", f'<div class="h">Creator search</div><div class="inp" style="margin-top:26px" id="kw"></div><div style="margin-top:10px">{fchips}</div>',
+             "Meanwhile, an agency <span class='hv'>searches your niche</span>", example=False)
+             + '<div class="ex">Example agency</div>',
+             script="var t='skincare';var n=Math.max(0,Math.min(t.length,Math.floor((ms-200)/90)));document.getElementById('kw').textContent=t.slice(0,n)||'Name, handle or headline';document.getElementById('kw').style.color=n?'#16131F':'#9A93A6';")
+    # 14.4-18.0 "...and your profile comes up, with numbers they can trust."
+    grid = card(CREATORS[2], 0) + you_card(1, 1.3) + card(CREATORS[0], 2) + card(CREATORS[3], 3)
+    s5 = doc(NOTIF + '<style>@keyframes glowon{to{box-shadow:0 0 0 6px #5B3DF5,0 20px 50px rgba(91,61,245,.35)}}</style>'
+             + phone("Creator search · Example Management", f'<div class="h" style="font-size:40px">12 creators</div><div class="cards">{grid}</div>',
+             "There <span class='hc'>you</span> are", example=False) + '<div class="ex">Example agency & creators</div>')
+    # 18.0-22.6 "If they're interested, the inquiry comes straight to you."
+    s6 = doc(NOTIF + '<div class="lock"></div><div class="date">Tuesday, November 18</div><div class="clock">9:41</div>'
+             f'<div class="note"><div class="ic">{mark(INK, 80)}</div><div><b>TalentLoom</b><p>New inquiry from Example Management</p></div><small>now</small></div>'
+             '<div class="ex" style="color:#B9B3C6;top:1700px">Example notification</div>', dark=True)
+    # 22.6-26.2 "You decide what happens next."
+    s7 = doc(NOTIF + phone("Inquiries", '<div class="h">Inquiries</div><div class="msg"><div class="from"><i>EM</i>Example Management<span class="badge" style="margin-left:auto;background:#EEEAFF;color:#4B2FE0">Verified company</span></div>'
+             '<p style="margin:22px 0 0">Hi! We came across your profile while scouting skincare creators and would love to set up a call about representation.</p></div>'
+             '<div style="display:flex;gap:18px;margin-top:30px"><div class="btn press" style="--t:2.2s;margin:0;font-size:30px;padding:22px 44px">Reply</div>'
+             '<div class="btn ghost" style="margin:0;font-size:30px;padding:22px 44px">Not now</div></div>',
+             "You decide <span class='hv'>what's next</span>", example=False) + cursor(700, 1500, 250, 985, .8, 1.2) + '<div class="ex">Example inquiry</div>')
+    # 26.2-30 "Your creator account is free. Link's in bio."
+    s8 = end("Get found. <span class='hv'>Free</span> for creators 18+", "Link in bio")
+    return [(s1, 3.4), (s2, 3.6), (s3, 3.6), (s4, 3.8), (s5, 3.6), (s6, 4.6), (s7, 3.6), (s8, 3.8)]
+
 if __name__ == "__main__":
-    render("u01", scenes(), "frames" in sys.argv)
+    fo = "frames" in sys.argv
+    which = [a for a in sys.argv[1:] if a.startswith("u")] or ["u01", "u02"]
+    if "u01" in which: render("u01", scenes(), fo)
+    if "u02" in which: render("u02", scenes2(), fo)
