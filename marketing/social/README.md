@@ -16,7 +16,8 @@ Nov 9: added IG p08 (Nov 23) and new TikTok Reel r09 (Nov 11, Reel version of p0
 Nov 10: added TikTok p07 privacy carousel (Nov 22 7pm). TikTok photo posts are NOT dead (m01 photo got 46 views), keep mixing them in.
 Nov 11: added IG r09 (Nov 25 6pm), TikTok p08 (Nov 23 7pm).
 Nov 12: added IG p09 (Nov 27 10am), TikTok p09 (Nov 27 7pm). r09 frame-0 hook did not improve watch time (0.98s).
-Not yet scheduled: Instagram r07, p10, r08, p11, p12, p02 (Dec 5) and all Stories; TikTok p10–p12 carousels.
+Nov 13: added TikTok p10 (Dec 1 7pm).
+Not yet scheduled: Instagram r07, p10, r08, p11, p12, p02 (Dec 5) and all Stories; TikTok p11–p12.
 
 ## Daily log
 See LOG.md.
