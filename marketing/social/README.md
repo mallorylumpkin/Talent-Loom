@@ -19,7 +19,8 @@ Nov 12: added IG p09 (Nov 27 10am), TikTok p09 (Nov 27 7pm). r09 frame-0 hook di
 Nov 13: added TikTok p10 (Dec 1 7pm).
 Nov 14: added IG r07 (Nov 29 6pm), TikTok p11 (Dec 3 7pm).
 Nov 15: added IG p10 (Dec 1 11:30am).
-Not yet scheduled: Instagram r08, p11, p12, p02 (Dec 5) and all Stories; TikTok p12.
+Nov 16: added TikTok p12 (Dec 4 7pm). TikTok has now scheduled every item in the 30-day plan.
+Not yet scheduled: Instagram r08, p11, p12, p02 (Dec 5) and all Stories. TikTok needs new content for Dec 5+.
 
 ## Daily log
 See LOG.md.
