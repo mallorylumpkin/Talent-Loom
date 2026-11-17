@@ -264,6 +264,37 @@ FEED = [
   ], caption=(
     "End the year with momentum. Save this and tick one off every few days.\n\n"
     "Which one are you starting with? Tell us below.\n\n" + TAGS_CREATOR)),
+
+  # ---------------- Added Nov 17: post-plan carousels (Dec 6+) ----------------
+  # On TikTok, photo carousels (p04 114 views, m01 59 views with the best watch time) match or beat
+  # text-card Reels, and "villain" + "what managers look for" are the two strongest topics.
+  dict(id="m02", date="2026-12-06", time="10:00", kind="carousel", slides=[
+    dict(t="cover", kicker="Creators, read this", title="A real manager never charges you to *sign.*"),
+    dict(t="statement", title="If they want money _before_ any deals,|it isn't management."),
+    dict(t="list", n="01", title="The upfront fee", body="“Pay to join our roster.” Real managers earn a commission on deals they help you land."),
+    dict(t="list", n="02", title="The rush", body="“Sign today or lose the spot.” A good offer survives a night of reading the contract."),
+    dict(t="list", n="03", title="The mystery roster", body="They can't name a single creator they manage."),
+    dict(t="statement", title="On TalentLoom every company is *vetted* before it can search.|None can charge creators upfront fees."),
+    dict(t="cta", title="Free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "You don't need a million followers to get a manager. You need the right people to see your real numbers, "
+    "and you should never have to pay them to look.\n\n"
+    "Send this to a creator who just got a \"management offer\" in their DMs.\n\n"
+    "Every company on TalentLoom is reviewed before it can search for creators, and none are allowed to charge "
+    "creators upfront fees. Link in bio.\n\n" + TAGS_CREATOR + " #influencerscam")),
+
+  dict(id="p13", date="2026-12-08", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="3 numbers managers check *before* they DM you"),
+    dict(t="list", n="01", title="Engagement rate", body="(likes + comments) ÷ followers × 100, compared across your niche."),
+    dict(t="list", n="02", title="Average views", body="What a brand can expect from a typical post, not your one viral hit."),
+    dict(t="list", n="03", title="Consistency", body="A steady posting rhythm over the last 90 days."),
+    dict(t="card", title="Your followers, average views and engagement rate, *from your accounts*"),
+    dict(t="cta", title="Build your free profile", body="talentloom.live"),
+  ], caption=(
+    "Before a manager reaches out, they've already looked at these three. Do you know yours?\n\n"
+    "Connect your accounts on TalentLoom and your follower count, average views and engagement rate update on their own, "
+    "each labeled with where it came from.\n\n"
+    "Save this for your next profile refresh. Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
