@@ -295,6 +295,22 @@ FEED = [
     "Connect your accounts on TalentLoom and your follower count, average views and engagement rate update on their own, "
     "each labeled with where it came from.\n\n"
     "Save this for your next profile refresh. Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+
+  # ---------------- Added Nov 20: step-by-step format ----------------
+  # TikTok p06 "how it works" (numbered steps) held attention far longer than anything else
+  # (79 views, 11.8s avg watch vs 1-3s), so this reuses the step layout.
+  dict(id="p14", date="2026-12-10", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="How to get *found* by a manager in 4 steps"),
+    dict(t="step", n="1", title="Say your niche in line one", body="Of your bio. Managers search by niche first."),
+    dict(t="step", n="2", title="Pin your 3 best posts", body="So the first thing they see is your strongest work."),
+    dict(t="step", n="3", title="Know your numbers", body="Engagement rate and average views, not just followers."),
+    dict(t="step", n="4", title="Be where they search", body="Make a free TalentLoom profile and turn on discovery when you're ready."),
+    dict(t="cta", title="Free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "Getting found isn't luck. It's making the first 10 seconds of your profile easy to say yes to.\n\n"
+    "Which step are you on? Tell us below.\n\n"
+    "Your TalentLoom profile stays hidden until you turn on discovery, and every company is vetted before it can search. "
+    "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
