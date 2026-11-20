@@ -21,7 +21,9 @@ Nov 14: added IG r07 (Nov 29 6pm), TikTok p11 (Dec 3 7pm).
 Nov 15: added IG p10 (Dec 1 11:30am).
 Nov 16: added TikTok p12 (Dec 4 7pm). TikTok has now scheduled every item in the 30-day plan.
 Nov 17: added IG r08 (Dec 2 6pm). New post-plan carousels m02 (villain: never pay to sign) and p13 (3 numbers managers check) added to content.py, rendered and served; not yet scheduled.
-Not yet scheduled: Instagram p11, p12, p02 (Dec 5), m02, p13 and all Stories. TikTok: m02 (Dec 6) and p13 (Dec 8) next.
+Nov 18-19: IG p11 (Dec 3), TikTok m02 (Dec 6), p13 (Dec 8).
+Nov 20: IG p12 (Dec 4). New p14 step-by-step carousel added, scheduled TikTok Dec 10 7pm.
+Not yet scheduled: Instagram p02 (Dec 5), m02, p13, p14 and all Stories. TikTok: nothing left, draft more step-by-step carousels.
 
 ## Daily log
 See LOG.md.
