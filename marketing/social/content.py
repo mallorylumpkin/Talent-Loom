@@ -311,6 +311,23 @@ FEED = [
     "Which step are you on? Tell us below.\n\n"
     "Your TalentLoom profile stays hidden until you turn on discovery, and every company is vetted before it can search. "
     "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+
+  # ---------------- Added Nov 21: step-by-step x anti-scam ----------------
+  # Combines the two best TikTok signals: numbered steps (p06, 11.8s avg watch) and the
+  # "before you sign" angle (m01, r06).
+  dict(id="p15", date="2026-12-12", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="A manager just DM'd you. *Do this* before you reply."),
+    dict(t="step", n="1", title="Look them up", body="Find their company and a creator they actually manage."),
+    dict(t="step", n="2", title="Ask how they get paid", body="Real managers earn commission on deals. Never an upfront fee."),
+    dict(t="step", n="3", title="Get it in writing", body="Commission, contract length and how you can leave."),
+    dict(t="step", n="4", title="Take a night", body="A good offer survives you reading the contract."),
+    dict(t="card", title="On TalentLoom every company is *vetted* before it can search"),
+    dict(t="cta", title="Free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "Getting a management DM is exciting. Here's how to check it's real before you say yes.\n\n"
+    "Send this to a creator who just got one.\n\n"
+    "Every company on TalentLoom is reviewed before it can search for creators, and none can charge creators upfront fees. "
+    "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
