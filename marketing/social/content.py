@@ -328,6 +328,22 @@ FEED = [
     "Send this to a creator who just got one.\n\n"
     "Every company on TalentLoom is reviewed before it can search for creators, and none can charge creators upfront fees. "
     "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+
+  # ---------------- Added Nov 22: step layout x "before you sign" ----------------
+  # Same two signals as p15. Planned as the next TikTok slot after p15 (Dec 14).
+  dict(id="p16", date="2026-12-14", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="Got a management contract? *Find these 4 lines* first."),
+    dict(t="step", n="1", title="The commission", body="What percent, and on which deals. Only the ones they help with?"),
+    dict(t="step", n="2", title="The term", body="How long you're signed for, and whether it renews on its own."),
+    dict(t="step", n="3", title="The way out", body="How you can leave, with how much notice, and what you owe after."),
+    dict(t="step", n="4", title="The job", body="What they'll actually do for you, written down. Not just promised."),
+    dict(t="card", title="Can't find one? *Ask* before you sign."),
+    dict(t="cta", title="Vetted managers, free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "A contract you can't explain back is a contract you shouldn't sign yet.\n\n"
+    "Save this for your next offer, and have someone you trust read the full contract too.\n\n"
+    "Every company on TalentLoom is vetted before it can search for creators. Free for creators 18+. Link in bio.\n\n"
+    + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
