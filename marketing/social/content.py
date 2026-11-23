@@ -344,6 +344,23 @@ FEED = [
     "Save this for your next offer, and have someone you trust read the full contract too.\n\n"
     "Every company on TalentLoom is vetted before it can search for creators. Free for creators 18+. Link in bio.\n\n"
     + TAGS_CREATOR)),
+
+  # ---------------- Added Nov 23: step layout x "what managers look at" ----------------
+  # p04 ("what managers look at first") is still the most-viewed TikTok post; numbered steps
+  # hold attention best (p06). Planned for TikTok Dec 16.
+  dict(id="p17", date="2026-12-16", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="Fix your bio so a manager gets it in *5 seconds*"),
+    dict(t="step", n="1", title="Line one: your niche", body="What you make and who it's for. Managers search by niche first."),
+    dict(t="step", n="2", title="Line two: one proof point", body="A number or a collab you can back up. Not a list of everything."),
+    dict(t="step", n="3", title="Line three: how to reach you", body="A business email. Make it easy to say hi."),
+    dict(t="step", n="4", title="Then link your proof", body="One link where your real stats live."),
+    dict(t="card", title="TalentLoom shows your stats *from your connected accounts*"),
+    dict(t="cta", title="Free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "Your bio is the first thing a manager reads, and most people decide in seconds.\n\n"
+    "Save this, then rewrite yours tonight. Drop your niche below and we'll tell you if line one is clear.\n\n"
+    "Connect your accounts on TalentLoom and your follower count, average views and engagement rate update on their own. "
+    "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
