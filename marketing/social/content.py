@@ -361,6 +361,19 @@ FEED = [
     "Save this, then rewrite yours tonight. Drop your niche below and we'll tell you if line one is clear.\n\n"
     "Connect your accounts on TalentLoom and your follower count, average views and engagement rate update on their own. "
     "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
+  dict(id="p18", date="2026-12-18", time="11:30", kind="carousel", slides=[
+    dict(t="cover", kicker="Save this", title="Work out your engagement rate in *4 steps*"),
+    dict(t="step", n="1", title="Pick your last 10 posts", body="Recent posts show where you are now, not where you were."),
+    dict(t="step", n="2", title="Add likes + comments", body="Do it for each post on its own."),
+    dict(t="step", n="3", title="Divide by your followers", body="Each post's total, divided by your follower count."),
+    dict(t="step", n="4", title="Times 100, then average", body="That's your engagement rate. Compare it across your niche."),
+    dict(t="card", title="Connect your accounts and TalentLoom *calculates it for you*"),
+    dict(t="cta", title="Free for creators 18+", body="talentloom.live"),
+  ], caption=(
+    "Managers look at engagement before follower count, so know yours.\n\n"
+    "Save this and do the math tonight. Drop your number below if you want a gut check.\n\n"
+    "Or connect your accounts on TalentLoom and your engagement rate updates on its own. "
+    "Free for creators 18+. Link in bio.\n\n" + TAGS_CREATOR)),
 ]
 
 # ---------------- Stories: one a day, 9:00am ----------------
