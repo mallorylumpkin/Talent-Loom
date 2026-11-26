@@ -24,7 +24,8 @@ Nov 17: added IG r08 (Dec 2 6pm). New post-plan carousels m02 (villain: never pa
 Nov 18-19: IG p11 (Dec 3), TikTok m02 (Dec 6), p13 (Dec 8).
 Nov 20: IG p12 (Dec 4). New p14 step-by-step carousel added, scheduled TikTok Dec 10 7pm.
 Nov 21: IG p02 (Dec 5 10am). New p15 "A manager just DM'd you" step-by-step carousel added, rendered, served; not yet scheduled.
-Nov 25: IG p13 (Dec 8 11:30am). Not yet scheduled: Instagram p14-p18 and all Stories; TikTok p18 (Dec 18 7pm when a slot frees).
+Nov 25: IG p13 (Dec 8 11:30am).
+Nov 26: IG p14 (Dec 10 11:30am). Not yet scheduled: Instagram p15-p18 and all Stories; TikTok p18 (Dec 18 7pm when a slot frees).
 
 ## Daily log
 See LOG.md.
